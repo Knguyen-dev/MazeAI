@@ -1,0 +1,33 @@
+[project]
+name = "mazeai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame>=2.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.396",
+    "pytest>=8.3.5",
+    "ruff>=0.11.0",
+]
+ 
+[tool.ruff]
+include = ["src/**/*.py", "tests/**/*.py"]
+indent-width = 2
+
+[tool.ruff.format]
+quote-style="double"
+indent-style="space"
+line-ending="lf"
+
+# pyproject.toml
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
