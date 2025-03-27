@@ -12,16 +12,15 @@ From there you can control the width and height of the canvas
 
 
 # Dimensions
-COLS, ROWS  = 10, 10
+COLS, ROWS  = 25, 25
 CELL_SIZE = 20
 WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS*CELL_SIZE
 CELL_WALL_WIDTH = 1
-PADDING = 20
 RANDOM_SEED = 10299302
 
 # In seconds; The maximum i would set this is probably 0.15, anything higher would be annoying.
 # Becareful not to set this to like > 5 seconds, because that would leave the program unresponsive.
-DELAY = 0.10 
+DELAY = 0.05 
 
 # Colors
 YELLOW = (183, 211, 122)

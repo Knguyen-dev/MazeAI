@@ -9,31 +9,14 @@ class MazeGenerator:
 
   def __init__(self, delay: float = 0):
     self.delay = delay
-  
-  def test_draw_pattern(self, grid: Grid, update_callback=None):
-    # Alternate between removing the top and bottom
-    for y in range(grid.num_rows):
-      for x in range(grid.num_cols):
-        # For all diagonal cells remove their walls. To achieve this, you need to 
-        # set the boolean walls of the said diagonal to false, and then also set 
-        # the neighboring walls to have their booleans (for the shared wall) to false
-        if x == y:
-          cell = grid.get_cell(x,y)
-          neighbors = grid.get_all_neighbors(cell)
-          # Then for each neighbor, remove the shared wall it has with the given diagonal
-          for n in neighbors:
-            grid.remove_wall(cell, n)
-            # You removed a wall, update the drawing of the screen
-            if update_callback:
-              update_callback()
-              time.sleep(self.delay)
-    print("Completed test draw pattern")
 
-  def recursive_backtracker(self, grid: Grid, update_callback=None):
+  def recursive_backtracker(self, grid: Grid, update_callback=None) -> None:
     """Creates a maze out of a grid using the recursive backtracker algorithm.
     Args:
         grid (Grid): Grid being drawn
         update_callback (Function, optional): Function that allows us to update an animation frame. Defaults to None.
+
+    NOTE: Mazes created with this function need to produce long hallways due ot the depth first nature of the function.
     """
     '''
     Algorithm: 
@@ -51,9 +34,10 @@ class MazeGenerator:
       e. Assuming "update_callback" was given, we call this to draw the state of the grid exactly after we 
       removed the wall. 
     4. Reset the visited cells. We know we're going to run search algorithms after this, and having nodes listed as 
-      already bisited would make those algorithms not work as expected.
+      already visited would make those algorithms not work as expected.
     '''
-    stack: list[Cell] = [grid.get_cell(0, 0)]
+    start_cell = grid.get_start_cell()
+    stack: list[Cell] = [start_cell]
     while stack:
       current_cell = stack.pop()
       unvisited_neighbors = grid.get_all_unvisited_neighbors(current_cell)
@@ -67,11 +51,55 @@ class MazeGenerator:
         if update_callback:
           time.sleep(self.delay)
           update_callback()
+
+    # NOTE: It's critical that we reset the is_visited state on each of the cells for our 
+    # maze solving algorithms to work. Because if we don't it tells the program that 
+    # all the cells are already visited, and that causes problems with the search algorithm to know which 
+    # cells should be expanded or added to their respective data structures.
     grid.reset_visited_cells()    
-  
-  def randomized_prim(self, grid: Grid, update_callback=None):
-    pass
 
   def randomized_kruskal(self, grid: Grid, update_callback=None):
+    """Runs the iterative randomized Kruskal's algorithm (with sets).
+
+    Args:
+        grid (Grid): _description_
+        update_callback (_type_, optional): _description_. Defaults to None.
+    """
+    '''
+    Algorithm:
+
+    1. Create a list of walls, and create a set for each cell, each containing just that cell.
+    2. For each wall, in some random order (iteration):
+      a. if the cells divided by this wall belong to distinct sets:
+        - Remove the current wall
+        - Join the sets of the formerly divided cells.
+
+    My thinking:
+    1. list of walls = [ (x_index, y_index, direction), ...] could work. List of valid walls, so just be careful not to include the borders?
+    2. For the set of cells
+    2. Mix up the list and iterate
+      3. 
+    '''
     pass
+
+  def randomized_prim(self, grid: Grid, update_callback=None) -> None:
+    """Runs the randomized prim's algorithm on a grid. This uses the iterative approach, which allows it to work on large mazes.
+
+    Args:
+        grid (Grid): Grid that the algorithm is being run on.
+        update_callback (Function, optional): Function that updates the grid dissplay whilst the function is being run.
+    """
+
+
+    '''
+    Algorithm:
+      1. Pick a cell to start the maze generation from
+      2. 
+
+    
+    
+    '''
+    pass
+
+  
   

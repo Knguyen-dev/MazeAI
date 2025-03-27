@@ -4,7 +4,9 @@ import sys
 import pygame
 
 from algorithms.MazeGenerator import MazeGenerator
+from algorithms.MazeSolver import MazeSolver
 from grid.Grid import Grid
+from grid.Renderer import Renderer
 
 # You can probably create a separate rendering class
 from utils.constants import (
@@ -22,7 +24,7 @@ from utils.constants import (
 
 class App:
   def __init__(self):
-    """Wait don't delete main.py yet. Sometimes this class doesn't work as the program just crashes"""
+    """Wait don't delete main.py yet. Sometimes tis class doesn't work as the program just crashes"""
 
     # Pygame setup
     pygame.init()
@@ -33,22 +35,48 @@ class App:
 
     # Our setup
     random.seed(RANDOM_SEED)
-    self.grid = Grid(self.screen, ROWS, COLS, CELL_SIZE, CELL_WALL_WIDTH)
-    self.maze_generator = MazeGenerator(delay=DELAY)
-
-  def update_display(self):
-    self.screen.fill(BLACK) 
-    self.grid.draw()
-    pygame.display.update()
-    self.clock.tick(60)
+    self.grid = Grid(ROWS, COLS, (0,0), (COLS-1,ROWS-1))
+    self.maze_generator = MazeGenerator(delay=0)
+    self.maze_solver = MazeSolver(DELAY)
+    self.renderer = Renderer(
+      self.screen,
+      self.clock,
+      self.grid,
+      CELL_SIZE,
+      CELL_WALL_WIDTH,
+      False # Generate the maze; ensure the renderer doesn't highlight the cells it visits when creating the maze
+    )
 
   def run(self):
-    """The game loop"""
-    self.maze_generator.recursive_backtracker(self.grid, update_callback=self.update_display)
-    while True:
+    """Function involved in the main program loop"""
+    self.maze_generator.recursive_backtracker(
+      self.grid, 
+      update_callback=self.renderer.update_display
+    )
+
+    # For maze solving, make sure the renderer highlights the cells being visited
+    self.renderer.highlight_cells = True
+    self.maze_solver.breadth_first_search(
+      self.grid,
+      update_callback=self.renderer.update_display
+    )
+    
+    is_running = True
+    while is_running:
       for e in pygame.event.get():
         if e.type == pygame.QUIT:
-          pygame.quit()
-          sys.exit()
+          is_running = False
+      self.renderer.update_display()
       pygame.display.update()
       self.clock.tick(60)
+    
+    pygame.quit()
+    sys.exit()
+
+
+def main():
+  app = App()
+  app.run()
+
+if __name__ == "__main__":
+  main()

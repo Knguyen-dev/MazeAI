@@ -1,26 +1,38 @@
-import pygame
-
 from grid.Cell import Cell
 from utils.Direction import Direction
 
 
 class Grid:
-  def __init__(self, surface: pygame.Surface, num_rows: int, num_cols: int, cell_size: int, cell_wall_width: int):
-    """_summary_
+  def __init__(self, num_rows: int, num_cols: int, start_pos: tuple[int, int] = (0,0), end_pos: tuple[int, int] = None):
+    """Creates a grid object used to represent the maze.
 
     Args:
-        num_rows (int): Number of rows in the grid. This determines the height
-        num_cols (int): Number of columns in the grid. This determines the width
-
-    NOTE: While in the real app you're probably going to only use one grid, it's
-    helpful to have initialization arguments for testing.
+        surface (pygame.Surface): Surface we're drawing the grid on
+        num_rows (int): Number of rows in the grid
+        num_cols (int): Number of columns in the grid
+        start_pos (tuple[int, int], optional): Start position (0-index) of the search within a grid. Defaults to (0,0).
+        end_pos (tuple[int, int], optional): End position (0-indexed) of a search within a grid. Defaults to the bottom right corner of the grid.
     """
-    self.surface = surface
     self.num_rows = num_rows
     self.num_cols = num_cols
-    self.cell_size = cell_size
-    self.cell_wall_width = cell_wall_width
 
+    # Initialize start and end positions
+    self.start_pos = start_pos
+    self.end_pos = end_pos if end_pos else (num_cols-1, num_rows - 1)
+    
+    # Ensure the start and end positions are valid 
+    if not self.is_valid_position(self.start_pos[0], self.start_pos[1]):
+      raise ValueError("Start position must be in range")
+    if not self.is_valid_position(self.end_pos[0], self.end_pos[1]):
+      raise ValueError("End position must be in range")
+
+    '''
+    Index position of the agent drawing the maze or agent solving the maze
+    NOTE: I don't know if all functions will use this
+    '''
+    self.agent_pos: tuple[int, int] = (0,0)
+    self.is_agent_visible: bool = False
+     
     # Initialize the matrix of cells
     self.matrix: list[list[Cell]] = []
     for y in range(num_rows):
@@ -29,14 +41,11 @@ class Grid:
         cell_row.append(Cell(x, y))
       self.matrix.append(cell_row)
 
-  def draw(self) -> None:
-    for row in self.matrix:
-      for cell in row:
-        cell.draw(
-          self.surface,
-          self.cell_size,
-          self.cell_wall_width
-        )
+  def set_agent_pos(self, pos: tuple[int, int]):
+    self.agent_pos = pos
+  
+  def set_agent_visibility(self, is_agent_visible: bool):
+    self.is_agent_visible = is_agent_visible    
 
   def get_cell(self, x: int, y: int) -> Cell | None:
     """Gets a cell using its x and y coordinates. Visualize (0,0) as the top left of the grid.
@@ -55,7 +64,33 @@ class Grid:
         return None
 
     return self.matrix[y][x]  # y is row index, x is column index
-  
+
+  def get_start_cell(self) -> Cell:
+    """Returns the starting cell
+
+    Raises:
+      RuntimeError: When starting cell doesn't exist 
+
+    Returns:
+        Cel: The starting cell. If shouldn't return None unless the Grid class's `start_pos` attribute was modified erroneously.
+    """
+    start_cell = self.get_cell(self.start_pos[0], self.start_pos[1])
+    if not start_cell:
+      raise RuntimeError("Start cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!")
+    
+    return start_cell
+
+  def is_goal_cell(self, cell: Cell) -> bool:
+    """Returns whether or not a given cell is the goal or end cell
+
+    Args:
+        cell (Cell): Cell being compared
+
+    Returns:
+        bool: If true, then cell is the goal cell.
+    """
+    return cell.x == self.end_pos[0] and cell.y == self.end_pos[1]
+
   def is_valid_position(self, x: int, y: int) -> bool:
     # If within horizontal index range AND vertical index range
     return (x >= 0 and x < self.num_cols) and (y >= 0 and y < self.num_rows)
@@ -116,6 +151,32 @@ class Grid:
         list[Cell]: _description_
     """
     return list(filter(lambda neighbor: not neighbor.is_visited, self.get_all_neighbors(cell)))
+  
+  def get_path_neighbors(self, cell: Cell) -> list[Cell]:
+    """Given a cell, return a list of neighboring cells that have their walls down.
+
+    Args:
+        cell (Cell): _description_
+
+    Returns:
+        list[Cell]: _description_
+
+    NOTE: You can assume that you only need to check if the wall in the direction
+    of the current cell is down, rather than needing to check both cell walls.
+    """
+
+    '''
+    Iterate through all directions:
+      1. If the cell's wall in that direction is down, then that 
+      means that the cell in that direction cna be traversed to.
+      2. Add this neighbor cell to our list
+    '''
+    path_neighbors = []
+    for dir in Direction:
+      if not cell.get_wall(dir):
+        path_neighbors.append(self.get_neighbor(cell, dir))
+
+    return path_neighbors
 
   def remove_wall(self, cell: Cell, neighbor: Cell) -> None:
     """Removes a shared wall between two cells.

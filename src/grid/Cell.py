@@ -1,6 +1,3 @@
-import pygame
-
-from utils.constants import YELLOW
 from utils.Direction import Direction
 
 
@@ -14,8 +11,13 @@ class Cell:
     """
     self.x = x
     self.y = y
-    self.weight = 0
+    self.weight = 1 # Default weight
+
+    # The parent or preceding cell; really reusable and memory efficient way 
+    # of storing it.
+    self.parent = None
     self.is_visited = False
+    self.is_in_path = False
     self.walls = {
       Direction.UP: True,
       Direction.DOWN: True,
@@ -23,46 +25,16 @@ class Cell:
       Direction.RIGHT: True,
     }
 
-  def draw(self, surface: pygame.Surface, cell_size: int, cell_wall_width: int):
-    """Draws a cell and its walls
+  def get_wall(self, direction: Direction) -> bool:
+    """Gets the status of the wall in a given direction
+
     Args:
-        surface (pygame.Surface): Surface we're drawing on
-        cell_size (int): Length=width of the cell
+        direction (Direction): Direction of the wall we're checking
+
+    Returns:
+        bool: If true, the wall is up.
     """
-    x_pixels = self.x * cell_size
-    y_pixels = self.y * cell_size
-
-    '''
-    Walls:
-    - Top wall: top left to top right
-    - Bottom wall: Bottom left to bottom right
-    - Left wall: Top left to bottom left
-    - Right wall: top right to bottom right
-    '''
-    walls_to_draw = {
-      Direction.UP: ((x_pixels, y_pixels), (x_pixels + cell_size, y_pixels)),
-      Direction.DOWN: (
-        (x_pixels, y_pixels + cell_size),
-        (x_pixels + cell_size, y_pixels + cell_size),
-      ),
-      Direction.LEFT: ((x_pixels, y_pixels), (x_pixels, y_pixels + cell_size)),
-      Direction.RIGHT: (
-        (x_pixels + cell_size, y_pixels),
-        (x_pixels + cell_size, y_pixels + cell_size),
-      ),
-    }
-
-    # For each direction, check to see if it's wall is up, if so draw it
-    for direction in walls_to_draw:
-      if self.walls[direction]:
-        start_pos, end_pos = walls_to_draw[direction]
-        pygame.draw.line(
-          surface, 
-          YELLOW,
-          start_pos,
-          end_pos,
-          cell_wall_width
-        )
+    return self.walls[direction]
 
   def set_wall(self, direction: Direction, is_up: bool) -> None:
     """Sets the status of a wall in a given direction
