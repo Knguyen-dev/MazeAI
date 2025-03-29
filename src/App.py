@@ -56,7 +56,7 @@ class App:
 
     # For maze solving, make sure the renderer highlights the cells being visited
     self.renderer.highlight_cells = True
-    self.maze_solver.breadth_first_search(
+    self.maze_solver.depth_first_search(
       self.grid,
       update_callback=self.renderer.update_display
     )

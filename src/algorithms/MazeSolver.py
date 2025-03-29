@@ -107,6 +107,35 @@ class MazeSolver:
           if update_callback:
             time.sleep(self.delay)
             update_callback()
+            
+  def depth_first_search(self, grid: Grid, update_callback=None) -> None:
+    """Performs a depth first search on the grid.
+
+    Args:
+      grid (Grid): Grid being searched
+      update_callback (_type_, optional): Callback to update visualization. Defaults to None.
+
+    """
+    start = grid.get_start_cell()
+    start.is_visited = True
+    stack = [start]
+    
+    while stack:
+      current = stack.pop()  # pop from the end (lifo)
+      if grid.is_goal_cell(current):
+        MazeSolver.reconstruct_path(current)
+        return
+      
+      for neighbor in grid.get_path_neighbors(current):
+        if not neighbor.is_visited:
+          neighbor.is_visited = True
+          neighbor.parent = current
+          stack.append(neighbor)
+          
+          if update_callback:
+            time.sleep(self.delay)
+            update_callback()
+
 
 
   
