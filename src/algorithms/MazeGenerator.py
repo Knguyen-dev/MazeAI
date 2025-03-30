@@ -1,8 +1,10 @@
 import random
 import time
 
+from algorithms.UnionFind import UnionFind
 from grid.Cell import Cell
 from grid.Grid import Grid
+from utils.Direction import Direction
 
 
 class MazeGenerator:
@@ -67,20 +69,44 @@ class MazeGenerator:
     """
     '''
     Algorithm:
-
-    1. Create a list of walls, and create a set for each cell, each containing just that cell.
-    2. For each wall, in some random order (iteration):
-      a. if the cells divided by this wall belong to distinct sets:
+    1. Create a list of walls; we've done this through a for loop that has 2 conditions; each wall is in form (x_index,y_index, direction)
+    2. Create a set for each cell, each containing just that set. Well use a disjoint set data structure for this.
+    3. Randomize the list of walls
+    4. For each wall (iteration):
+      a. Get the cells that are divided by this wall.
+      c. if these cells belong to distinct sets:
         - Remove the current wall
         - Join the sets of the formerly divided cells.
 
-    My thinking:
-    1. list of walls = [ (x_index, y_index, direction), ...] could work. List of valid walls, so just be careful not to include the borders?
-    2. For the set of cells
-    2. Mix up the list and iterate
-      3. 
+    NOTE: We're going to map each cell to a unique index in range [0, num_cols*num_rows-1]. This allows us to 
+    associate a cell with a given node in the UnionFind. 
     '''
-    pass
+    unionFind = UnionFind(grid.num_cols * grid.num_rows)
+    walls = []
+    for x in range(grid.num_cols):
+      for y in range(grid.num_rows):
+
+        # Add the right wall if not on the last column
+        if x < grid.num_cols - 1:
+          walls.append((x,y,Direction.RIGHT)) 
+
+        # Add the bottom wall if not on the last row
+        if y < grid.num_rows - 1:
+          walls.append((x,y,Direction.DOWN))
+
+    random.shuffle(walls)
+
+    for wall in walls:
+      cell = grid.get_cell(wall[0], wall[1])
+      neighbor = grid.get_neighbor(cell, wall[2])
+      cell_index = grid.get_list_index(cell.x, cell.y)
+      neighbor_index = grid.get_list_index(neighbor.x, neighbor.y)
+      if not unionFind.connected(cell_index, neighbor_index):
+        grid.remove_wall(cell, neighbor)
+        unionFind.unionByRank(cell_index, neighbor_index)
+        if update_callback:
+          time.sleep(self.delay)
+          update_callback()
 
   def randomized_prim(self, grid: Grid, update_callback=None) -> None:
     """Runs the randomized prim's algorithm on a grid. This uses the iterative approach, which allows it to work on large mazes.

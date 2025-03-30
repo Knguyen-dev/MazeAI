@@ -3,7 +3,13 @@ from utils.Direction import Direction
 
 
 class Grid:
-  def __init__(self, num_rows: int, num_cols: int, start_pos: tuple[int, int] = (0,0), end_pos: tuple[int, int] = None):
+  def __init__(
+    self,
+    num_rows: int,
+    num_cols: int,
+    start_pos: tuple[int, int] = (0, 0),
+    end_pos: tuple[int, int] = None,
+  ):
     """Creates a grid object used to represent the maze.
 
     Args:
@@ -18,21 +24,21 @@ class Grid:
 
     # Initialize start and end positions
     self.start_pos = start_pos
-    self.end_pos = end_pos if end_pos else (num_cols-1, num_rows - 1)
-    
-    # Ensure the start and end positions are valid 
+    self.end_pos = end_pos if end_pos else (num_cols - 1, num_rows - 1)
+
+    # Ensure the start and end positions are valid
     if not self.is_valid_position(self.start_pos[0], self.start_pos[1]):
       raise ValueError("Start position must be in range")
     if not self.is_valid_position(self.end_pos[0], self.end_pos[1]):
       raise ValueError("End position must be in range")
 
-    '''
+    """
     Index position of the agent drawing the maze or agent solving the maze
     NOTE: I don't know if all functions will use this
-    '''
-    self.agent_pos: tuple[int, int] = (0,0)
+    """
+    self.agent_pos: tuple[int, int] = (0, 0)
     self.is_agent_visible: bool = False
-     
+
     # Initialize the matrix of cells
     self.matrix: list[list[Cell]] = []
     for y in range(num_rows):
@@ -43,9 +49,9 @@ class Grid:
 
   def set_agent_pos(self, pos: tuple[int, int]):
     self.agent_pos = pos
-  
+
   def set_agent_visibility(self, is_agent_visible: bool):
-    self.is_agent_visible = is_agent_visible    
+    self.is_agent_visible = is_agent_visible
 
   def get_cell(self, x: int, y: int) -> Cell | None:
     """Gets a cell using its x and y coordinates. Visualize (0,0) as the top left of the grid.
@@ -61,7 +67,7 @@ class Grid:
         IndexError: If the coordinates are out of bounds.
     """
     if not self.is_valid_position(x, y):
-        return None
+      return None
 
     return self.matrix[y][x]  # y is row index, x is column index
 
@@ -69,15 +75,17 @@ class Grid:
     """Returns the starting cell
 
     Raises:
-      RuntimeError: When starting cell doesn't exist 
+      RuntimeError: When starting cell doesn't exist
 
     Returns:
         Cel: The starting cell. If shouldn't return None unless the Grid class's `start_pos` attribute was modified erroneously.
     """
     start_cell = self.get_cell(self.start_pos[0], self.start_pos[1])
     if not start_cell:
-      raise RuntimeError("Start cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!")
-    
+      raise RuntimeError(
+        "Start cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!"
+      )
+
     return start_cell
 
   def is_goal_cell(self, cell: Cell) -> bool:
@@ -150,8 +158,10 @@ class Grid:
     Returns:
         list[Cell]: _description_
     """
-    return list(filter(lambda neighbor: not neighbor.is_visited, self.get_all_neighbors(cell)))
-  
+    return list(
+      filter(lambda neighbor: not neighbor.is_visited, self.get_all_neighbors(cell))
+    )
+
   def get_path_neighbors(self, cell: Cell) -> list[Cell]:
     """Given a cell, return a list of neighboring cells that have their walls down.
 
@@ -165,12 +175,12 @@ class Grid:
     of the current cell is down, rather than needing to check both cell walls.
     """
 
-    '''
+    """
     Iterate through all directions:
       1. If the cell's wall in that direction is down, then that 
       means that the cell in that direction cna be traversed to.
       2. Add this neighbor cell to our list
-    '''
+    """
     path_neighbors = []
     for dir in Direction:
       if not cell.get_wall(dir):
@@ -185,31 +195,47 @@ class Grid:
         neighbor (Cell): The cell's assumed neighbor
     """
 
-    '''
+    """
     For each direction:
       a. add the displacement of that direction to the current cell's indices; get the tuple
       b. If indices match, then we can safely say that cell and neighbor are neighbors 
       and we correctly found the direction in which we can move from cell to neighbor.
-    '''
+    """
     direction_to_neighbor = None
     for direction in Direction:
       change_x, change_y = direction.value
-      if (cell.x + change_x == neighbor.x and cell.y + change_y == neighbor.y):
+      if cell.x + change_x == neighbor.x and cell.y + change_y == neighbor.y:
         direction_to_neighbor = direction
-    
+
     if direction_to_neighbor is None:
       raise ValueError(f"Failed to determine the direction from {cell} to {neighbor}!")
-    
+
     direction_from_neighbor = direction_to_neighbor.opposite
 
     # Mark these as false, on the next render, the wall won't be drawn
     cell.set_wall(direction_to_neighbor, False)
     neighbor.set_wall(direction_from_neighbor, False)
-  
+
   def reset_visited_cells(self):
-    """Sets the visited status of all nodes to false. This is here to help with maze generation algorithms since 
+    """Sets the visited status of all nodes to false. This is here to help with maze generation algorithms since
     many of them use a visited list, and it's convenient for them to use the is_visited property"""
     for x in range(self.num_cols):
       for y in range(self.num_rows):
         cell = self.get_cell(x, y)
         cell.is_visited = False
+
+  def get_list_index(self, x: int , y: int) -> int:
+    """Gets the list index for a given set of coordinates
+
+    Args:
+        x (int): Column index
+        y (int): Row index
+
+    Returns:
+        int: The list index for a cell in that position.
+
+    NOTE: If the matrix were flatten down into a giant list, this function maps an x-y index coordinate
+    into an index for that giant list. (x,y) -> x. This formula is a common result.
+    """
+    return y * self.num_cols + x
+    
