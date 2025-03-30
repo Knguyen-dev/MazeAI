@@ -23,12 +23,12 @@ class MazeGenerator:
     '''
     Algorithm: 
     1. Let the starting cell be (x,y) = (0,0), and put it into the fringe (stack)
-    2. Obtain all unvisited neighbor cells; these represent valid movse
+    2. Obtain all unvisited neighbor cells; these represent valid moves
     3. If there are unvisited neighbors:
       a. Choose a random neighbor to expand into; here we do that by choosing its index in the list
       b. Push the current cell back onto the stack. The reason we do this for backtracking reasons. We know that there
       are other unvisited nodes at the current cell, which we'll have to process later, so save the current cell for later processing 
-      whlist we expand into a neighbor recursively.
+      whilst we expand into a neighbor recursively.
       c. Remove the shared wall between the two cells
       d. Push the chosen neighbor onto the stack as we'll process it in the next iteration.
         Also mark the node as visited so we don't expand into it again. So the only time we would
@@ -113,19 +113,34 @@ class MazeGenerator:
 
     Args:
         grid (Grid): Grid that the algorithm is being run on.
-        update_callback (Function, optional): Function that updates the grid dissplay whilst the function is being run.
+        update_callback (Function, optional): Function that updates the grid display whilst the function is being run.
     """
-
-
     '''
     Algorithm:
-      1. Pick a cell to start the maze generation from
-      2. 
-
-    
-    
+    1. Pick a cell to start the maze generation from; mark the cell as visited and add its walls (add valid walls only) a wall list
+    2. Randomly pick a wall.
+    3. If the neighbor (some cell) is not visited 
+      a. Remove the wall between that cell and neighbor
+      b. Mark the neighbor as visited
+      c. Add all the walls of the neighbor to the walls list
+      d. Update the animation frame
     '''
-    pass
+    start_cell = grid.get_start_cell()
+    start_cell.is_visited = True
+    walls = grid.get_cell_walls(start_cell)
+    while walls:
+        wall_index = random.randint(0, len(walls) - 1)
+        cell, neighbor, direction = walls.pop(wall_index)
+        if not neighbor.is_visited:
+            grid.remove_wall(cell, neighbor)
+            neighbor.is_visited = True
+            walls.extend(grid.get_cell_walls(neighbor))
+            if update_callback:
+                time.sleep(self.delay)
+                update_callback()
+
+    grid.reset_visited_cells()
+    
 
   
   
