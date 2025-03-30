@@ -61,10 +61,7 @@ class Grid:
         y (int): The row index (vertical position). Positive means down the grid.
 
     Returns:
-        Cell: The cell at the given coordinates.
-
-    Raises:
-        IndexError: If the coordinates are out of bounds.
+        Cell | None: The cell at the given coordinates.
     """
     if not self.is_valid_position(x, y):
       return None
@@ -103,15 +100,12 @@ class Grid:
     # If within horizontal index range AND vertical index range
     return (x >= 0 and x < self.num_cols) and (y >= 0 and y < self.num_rows)
 
-  def get_neighbor(self, cell: Cell, direction: Direction) -> Cell:
+  def get_neighbor(self, cell: Cell, direction: Direction):
     """Gets the neighbor of the the cell in the corresponding direction. E.g. if direction was UP, get the neighbor above `cell`.
 
     Args:
         cell (Cell): Cell whose neighbor we are getting
         direction (Direction): The direction in which we should fetch the neighbor
-
-    Raises:
-      IndexError: When the neighbor's indices are out of range
 
     Returns:
       Cell: The neighbor in the direction of the cell that was passed.
@@ -238,4 +232,28 @@ class Grid:
     into an index for that giant list. (x,y) -> x. This formula is a common result.
     """
     return y * self.num_cols + x
-    
+
+  def get_cell_walls(self, cell: Cell):
+      """Gets all valid walls of a given cell.
+
+      Args:
+          cell (Cell): The cell whose walls we are fetching.
+
+      Returns:
+          list[tuple[Cell, Direction]]: A list of tuples, where each tuple contains:
+              - The neighboring cell on the other side of the wall.
+              - The direction of the wall.
+      """
+
+      walls = []
+      for direction in Direction:
+          neighbor = self.get_neighbor(cell, direction)
+          if neighbor and cell.get_wall(direction):  # Wall is "up" and neighbor exists
+              walls.append((cell, neighbor, direction))
+      return walls
+      # walls = []
+      # for direction in Direction:
+      #   # if wall is up and neighbor exists (meaning it's a legit wall that is shared between two cells)
+      #   if cell.get_wall(direction) and self.get_neighbor(cell, direction): 
+      #     walls.append((cell.x, cell.y, direction))
+      # return walls
