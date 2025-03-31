@@ -118,7 +118,7 @@ class MazeSolver:
 
     """
     start = grid.get_start_cell()
-    start.is_visited = True
+    start.set_is_visited(True)
     stack = [start]
     
     while stack:
@@ -128,13 +128,11 @@ class MazeSolver:
         return
       
       for neighbor in grid.get_path_neighbors(current):
-        if not neighbor.is_visited:
-          neighbor.is_visited = True
+        if not neighbor.get_is_visited():
+          neighbor.set_is_visited(True)
           neighbor.parent = current
           stack.append(neighbor)
-          
           if update_callback:
-            time.sleep(self.delay)
             update_callback()
 
 
