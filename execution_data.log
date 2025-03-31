@@ -6,3 +6,11 @@ randomized_prim: 13.9342 seconds; 12.51 KB, peak: 14.86 KB
 greedy_best_first: 1.5092 seconds; 0.77 KB, peak: 1.85 KB 
 randomized_prim: 12.9563 seconds; 12.51 KB, peak: 14.86 KB 
 greedy_best_first: 1.4609 seconds; 0.77 KB, peak: 1.85 KB 
+randomized_prim: 13.3601 seconds; 12.51 KB, peak: 14.86 KB 
+a_star: 4.2857 seconds; 1.27 KB, peak: 26.21 KB 
+randomized_prim: 12.8005 seconds; 12.51 KB, peak: 14.86 KB 
+a_star: 4.1156 seconds; 1.27 KB, peak: 26.21 KB 
+randomized_prim: 89.6644 seconds; 23.32 KB, peak: 27.30 KB 
+a_star: 51.8762 seconds; 3.62 KB, peak: 102.38 KB 
+randomized_prim: 12.3344 seconds; 12.51 KB, peak: 14.86 KB 
+a_star: 3.3856 seconds; 1.27 KB, peak: 26.21 KB 

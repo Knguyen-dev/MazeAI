@@ -172,6 +172,56 @@ class MazeSolver:
           
           if update_callback:
             update_callback()
+  
+  def a_star(self, grid:Grid, update_callback=None):
+    """
+    Performs A* search on the grid.
+    
+    Args:
+      grid (Grid): Grid being searched
+      update_callback (_type_, optional): Callback to update visualization. Defaults to None.
+    """
+    start = grid.get_start_cell()
+    goal = grid.get_cell(grid.end_pos[0], grid.end_pos[1])
+    
+    g_scores = {start: 0}
+    
+    f_scores = {start: MazeSolver.manhattan_distance(start, goal)}
+    
+    # priority queue: (f_score, cell)
+    open_set = [(f_scores[start], start)]
+    
+    # track cells in the open set for O(1) lookups
+    open_set_hash = {start}
+    
+    while open_set:
+      open_set.sort(key=lambda x: x[0])
+      _, current = open_set.pop(0)
+      open_set_hash.remove(current)
+      
+      current.set_is_visited(True)
+      
+      if grid.is_goal_cell(current):
+        MazeSolver.reconstruct_path(current)
+        return
+      
+      for neighbor in grid.get_path_neighbors(current):
+        tentative_g_score = g_scores[current] + neighbor.weight
+        
+        # case: path to neighbor is better than any previous one
+        if neighbor not in g_scores or tentative_g_score < g_scores[neighbor]:
+          
+          # update neighbor's scores and parent
+          neighbor.parent = current
+          g_scores[neighbor] = tentative_g_score
+          f_scores[neighbor] = tentative_g_score + MazeSolver.manhattan_distance(neighbor, goal)
+          
+          if neighbor not in open_set_hash and not neighbor.get_is_visited():
+            open_set.append((f_scores[neighbor], neighbor))
+            open_set_hash.add(neighbor)
+            
+            if update_callback:
+              update_callback()
 
 
   # Focus on these

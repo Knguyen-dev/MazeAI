@@ -12,7 +12,7 @@ From there you can control the width and height of the canvas
 
 
 # Dimensions
-COLS, ROWS  = 25, 25
+COLS, ROWS  = 25,25
 CELL_SIZE = 20
 WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS*CELL_SIZE
 CELL_WALL_WIDTH = 1

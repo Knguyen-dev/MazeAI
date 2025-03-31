@@ -60,7 +60,7 @@ class App:
     self.renderer.highlight_cells = True
 
     profile(
-      self.maze_solver.greedy_best_first,
+      self.maze_solver.a_star,
       self.grid,
       update_callback=self.renderer.update_display
     )
