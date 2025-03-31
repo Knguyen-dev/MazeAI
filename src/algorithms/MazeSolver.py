@@ -3,7 +3,7 @@ from collections import deque
 from grid.Cell import Cell
 from grid.Grid import Grid
 from grid.Renderer import Renderer
-
+import math
 
 class MazeSolver:
   
@@ -20,11 +20,11 @@ class MazeSolver:
     
     NOTE: Maybe put this in the MazeSolver class 
     """
-    def abs(x, y):
-      if (x-y < 0):
-        return -(x-y)
-      else:
-        return x-y
+    # def abs(x, y):
+    #   if (x-y < 0):
+    #     return -(x-y)
+    #   else:
+    #     return x-y
 
     x_change = abs(cell1.x - cell2.x)
     y_change = abs(cell1.y - cell2.y)
@@ -134,11 +134,44 @@ class MazeSolver:
           stack.append(neighbor)
           if update_callback:
             update_callback()
-
-
-
   
-  
+  def greedy_best_first(self, grid:Grid, update_callback=None):
+    """
+    Performs a greedy best first search on the grid.
+    
+    Args:
+      grid (Grid): Grid being searched
+      update_callback (_type_, optional): Callback to update visualization. Defaults to None.
+    """
+    start = grid.get_start_cell()
+    goal = grid.get_cell(grid.end_pos[0], grid.end_pos[1])
+    
+    start.set_is_visited(True)
+    
+    # each element is a tuple of (heuristic_value, cell)
+    queue = [(MazeSolver.manhattan_distance(start, goal), start)]
+    
+    while queue:
+      # sort queue by heuristic value (lowest first)
+      queue.sort(key=lambda x: x[0])
+      
+      _, current = queue.pop(0)
+      
+      if grid.is_goal_cell(current):
+        MazeSolver.reconstruct_path(current)
+        return
+      
+      for neighbor in grid.get_path_neighbors(current):
+        if not neighbor.get_is_visited():
+          neighbor.set_is_visited(True)
+          neighbor.parent = current
+          
+          # add to queue with its heuristic value
+          heuristic = MazeSolver.manhattan_distance(neighbor, goal)
+          queue.append((heuristic, neighbor))
+          
+          if update_callback:
+            update_callback()
 
 
   # Focus on these
@@ -148,4 +181,3 @@ class MazeSolver:
   # Optional and for fun:
   # wall following (left or right hand rule), pledge algorithm, tremaux, dead end filling, 
   # bellman-ford
-

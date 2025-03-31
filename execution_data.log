@@ -1,0 +1,8 @@
+randomized_prim: 11.4953 seconds; 12.18 KB, peak: 14.53 KB 
+breadth_first_search: 13.7482 seconds; 0.12 KB, peak: 2.18 KB 
+randomized_prim: 11.7961 seconds; 12.51 KB, peak: 14.86 KB 
+randomized_prim: 12.9809 seconds; 12.51 KB, peak: 14.86 KB 
+randomized_prim: 13.9342 seconds; 12.51 KB, peak: 14.86 KB 
+greedy_best_first: 1.5092 seconds; 0.77 KB, peak: 1.85 KB 
+randomized_prim: 12.9563 seconds; 12.51 KB, peak: 14.86 KB 
+greedy_best_first: 1.4609 seconds; 0.77 KB, peak: 1.85 KB 
