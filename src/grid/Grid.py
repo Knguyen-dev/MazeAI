@@ -1,3 +1,5 @@
+import numpy as np
+
 from grid.Cell import Cell
 from utils.Direction import Direction
 
@@ -40,12 +42,10 @@ class Grid:
     self.is_agent_visible: bool = False
 
     # Initialize the matrix of cells
-    self.matrix: list[list[Cell]] = []
+    self.matrix = np.empty((num_rows, num_cols), dtype=object)
     for y in range(num_rows):
-      cell_row: list[Cell] = []
-      for x in range(num_cols):
-        cell_row.append(Cell(x, y))
-      self.matrix.append(cell_row)
+        for x in range(num_cols):
+            self.matrix[y, x] = Cell(x, y)
 
   def set_agent_pos(self, pos: tuple[int, int]):
     self.agent_pos = pos
@@ -143,19 +143,6 @@ class Grid:
 
     return neighbors
 
-  def get_all_unvisited_neighbors(self, cell: Cell) -> list[Cell]:
-    """Gets all unvisited neighbors of a given cell
-
-    Args:
-        cell (Cell): _description_
-
-    Returns:
-        list[Cell]: _description_
-    """
-    return list(
-      filter(lambda neighbor: not neighbor.is_visited, self.get_all_neighbors(cell))
-    )
-
   def get_path_neighbors(self, cell: Cell) -> list[Cell]:
     """Given a cell, return a list of neighboring cells that have their walls down.
 
@@ -216,7 +203,7 @@ class Grid:
     for x in range(self.num_cols):
       for y in range(self.num_rows):
         cell = self.get_cell(x, y)
-        cell.is_visited = False
+        cell.set_is_visited(False)
 
   def get_list_index(self, x: int , y: int) -> int:
     """Gets the list index for a given set of coordinates
@@ -244,16 +231,9 @@ class Grid:
               - The neighboring cell on the other side of the wall.
               - The direction of the wall.
       """
-
       walls = []
       for direction in Direction:
           neighbor = self.get_neighbor(cell, direction)
           if neighbor and cell.get_wall(direction):  # Wall is "up" and neighbor exists
               walls.append((cell, neighbor, direction))
       return walls
-      # walls = []
-      # for direction in Direction:
-      #   # if wall is up and neighbor exists (meaning it's a legit wall that is shared between two cells)
-      #   if cell.get_wall(direction) and self.get_neighbor(cell, direction): 
-      #     walls.append((cell.x, cell.y, direction))
-      # return walls

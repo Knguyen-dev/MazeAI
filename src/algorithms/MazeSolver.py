@@ -1,13 +1,12 @@
-import time
+from collections import deque
 
 from grid.Cell import Cell
 from grid.Grid import Grid
+from grid.Renderer import Renderer
 
 
 class MazeSolver:
-  def __init__(self, delay: float):
-    self.delay = delay
-
+  
   @staticmethod
   def manhattan_distance(cell1: Cell, cell2: Cell) -> int:
     """Calculates the manhattan distance between two cells
@@ -59,11 +58,12 @@ class MazeSolver:
     path = []
     while cell:
       path.insert(0, cell)
-      cell.is_in_path = True
+      cell.set_in_path(True)
       cell = cell.parent
     return path
 
-  def breadth_first_search(self, grid: Grid, update_callback=None) -> None: 
+  @staticmethod
+  def breadth_first_search(grid: Grid, update_callback=None) -> None: 
     """Performs a breadth first search on the grid.
 
     Args:
@@ -91,21 +91,22 @@ class MazeSolver:
     NOTE: We're assuming there does exist a path from start to goal
     '''
     start = grid.get_start_cell()
-    start.is_visited = True
-    queue = [start]
+    start.set_is_visited(True)
+
+    queue = deque([start])
     while queue:
-      current = queue.pop(0)
+      current = queue.popleft()
       if grid.is_goal_cell(current):
         # realistically break out of the loop and in the final ends of the function run one last frame to render goal nodes
         MazeSolver.reconstruct_path(current)
         return
       for neighbor in grid.get_path_neighbors(current):
-        if not neighbor.is_visited:
-          neighbor.is_visited = True
+        if not neighbor.get_is_visited():
+          neighbor.set_is_visited(True)
           neighbor.parent = current
           queue.append(neighbor)
+          
           if update_callback:
-            time.sleep(self.delay)
             update_callback()
 
 

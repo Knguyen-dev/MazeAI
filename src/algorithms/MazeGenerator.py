@@ -42,13 +42,18 @@ class MazeGenerator:
     stack: list[Cell] = [start_cell]
     while stack:
       current_cell = stack.pop()
-      unvisited_neighbors = grid.get_all_unvisited_neighbors(current_cell)
+      
+      unvisited_neighbors = list(
+        filter(lambda neighbor: not neighbor.get_is_visited(), self.get_all_neighbors(current_cell))
+      )
+
       if unvisited_neighbors:
         neighbor_index = random.randint(0, len(unvisited_neighbors) - 1)
         stack.append(current_cell)
         randomly_chosen_neighbor = unvisited_neighbors[neighbor_index]
         grid.remove_wall(current_cell, randomly_chosen_neighbor)
-        randomly_chosen_neighbor.is_visited = True
+
+        randomly_chosen_neighbor.set_is_visited(True) 
         stack.append(randomly_chosen_neighbor)
         if update_callback:
           time.sleep(self.delay)
@@ -126,14 +131,14 @@ class MazeGenerator:
       d. Update the animation frame
     '''
     start_cell = grid.get_start_cell()
-    start_cell.is_visited = True
+    start_cell.set_is_visited(True)
     walls = grid.get_cell_walls(start_cell)
     while walls:
         wall_index = random.randint(0, len(walls) - 1)
         cell, neighbor, direction = walls.pop(wall_index)
-        if not neighbor.is_visited:
+        if not neighbor.get_is_visited():
             grid.remove_wall(cell, neighbor)
-            neighbor.is_visited = True
+            neighbor.set_is_visited(True)
             walls.extend(grid.get_cell_walls(neighbor))
             if update_callback:
                 time.sleep(self.delay)
