@@ -1,5 +1,4 @@
 import random
-import time
 
 from algorithms.UnionFind import UnionFind
 from grid.Cell import Cell
@@ -9,10 +8,9 @@ from utils.Direction import Direction
 
 class MazeGenerator:
 
-  def __init__(self, delay: float = 0):
-    self.delay = delay
-
-  def recursive_backtracker(self, grid: Grid, update_callback=None) -> None:
+  
+  @staticmethod
+  def recursive_backtracker(grid: Grid, update_callback=None) -> None:
     """Creates a maze out of a grid using the recursive backtracker algorithm.
     Args:
         grid (Grid): Grid being drawn
@@ -42,16 +40,20 @@ class MazeGenerator:
     stack: list[Cell] = [start_cell]
     while stack:
       current_cell = stack.pop()
-      unvisited_neighbors = grid.get_all_unvisited_neighbors(current_cell)
+      
+      unvisited_neighbors = list(
+        filter(lambda neighbor: not neighbor.get_is_visited(), grid.get_all_neighbors(current_cell))
+      )
+
       if unvisited_neighbors:
         neighbor_index = random.randint(0, len(unvisited_neighbors) - 1)
         stack.append(current_cell)
         randomly_chosen_neighbor = unvisited_neighbors[neighbor_index]
         grid.remove_wall(current_cell, randomly_chosen_neighbor)
-        randomly_chosen_neighbor.is_visited = True
+
+        randomly_chosen_neighbor.set_is_visited(True) 
         stack.append(randomly_chosen_neighbor)
         if update_callback:
-          time.sleep(self.delay)
           update_callback()
 
     # NOTE: It's critical that we reset the is_visited state on each of the cells for our 
@@ -60,7 +62,8 @@ class MazeGenerator:
     # cells should be expanded or added to their respective data structures.
     grid.reset_visited_cells()    
 
-  def randomized_kruskal(self, grid: Grid, update_callback=None):
+  @staticmethod
+  def randomized_kruskal(grid: Grid, update_callback=None):
     """Runs the iterative randomized Kruskal's algorithm (with sets).
 
     Args:
@@ -105,10 +108,10 @@ class MazeGenerator:
         grid.remove_wall(cell, neighbor)
         unionFind.unionByRank(cell_index, neighbor_index)
         if update_callback:
-          time.sleep(self.delay)
           update_callback()
 
-  def randomized_prim(self, grid: Grid, update_callback=None) -> None:
+  @staticmethod
+  def randomized_prim(grid: Grid, update_callback=None) -> None:
     """Runs the randomized prim's algorithm on a grid. This uses the iterative approach, which allows it to work on large mazes.
 
     Args:
@@ -126,17 +129,16 @@ class MazeGenerator:
       d. Update the animation frame
     '''
     start_cell = grid.get_start_cell()
-    start_cell.is_visited = True
+    start_cell.set_is_visited(True)
     walls = grid.get_cell_walls(start_cell)
     while walls:
         wall_index = random.randint(0, len(walls) - 1)
         cell, neighbor, direction = walls.pop(wall_index)
-        if not neighbor.is_visited:
+        if not neighbor.get_is_visited():
             grid.remove_wall(cell, neighbor)
-            neighbor.is_visited = True
+            neighbor.set_is_visited(True)
             walls.extend(grid.get_cell_walls(neighbor))
             if update_callback:
-                time.sleep(self.delay)
                 update_callback()
 
     grid.reset_visited_cells()

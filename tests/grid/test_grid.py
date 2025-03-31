@@ -139,7 +139,7 @@ def test_get_all_neighbors_left_mid():
 # ----------------------------
 # testing remove_wall_helper
 # ----------------------------
-def test_remove_wall_helper_vertical():
+def test_remove_wall_vertical():
   grid = Grid(5,5)
   
   # Get the cell and its neighbor below
@@ -150,13 +150,12 @@ def test_remove_wall_helper_vertical():
   grid.remove_wall(cell, neighbor)
 
   # Check that the cell's down wall is false
-  assert cell.walls[Direction.DOWN] is False
-
+  assert cell.get_wall(Direction.DOWN) is False
+  
   # Check that the neighbor's top wall is false
-  assert neighbor.walls[Direction.UP] is False
+  assert neighbor.get_wall(Direction.UP) is False
 
-
-def test_remove_wall_helper_horizontal():
+def test_remove_wall_horizontal():
   grid = Grid(5,5)
   
   # Get the cell and its neighbor below
@@ -167,9 +166,7 @@ def test_remove_wall_helper_horizontal():
   grid.remove_wall(cell, neighbor)
 
   # Check that the cell's down wall is false
-  assert cell.walls[Direction.RIGHT] is False
-
-  # Check that the neighbor's top wall is false
-  assert neighbor.walls[Direction.LEFT] is False
-
+  assert cell.get_wall(Direction.RIGHT) is False
   
+  # Check that the neighbor's top wall is false
+  assert neighbor.get_wall(Direction.LEFT) is False
