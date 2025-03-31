@@ -1,3 +1,5 @@
+import datetime
+import os
 import random
 import sys
 
@@ -51,18 +53,18 @@ class App:
     """Function involved in the main program loop"""
 
     profile(
-      self.maze_generator.randomized_prim,
+      self.maze_generator.randomized_kruskal,
       self.grid, 
-      update_callback=self.renderer.update_display
+      # update_callback=self.renderer.update_display
     )
     
     # For maze solving, make sure the renderer highlights the cells being visited
     self.renderer.highlight_cells = True
 
     profile(
-      self.maze_solver.a_star,
+      self.maze_solver.dijkstra,
       self.grid,
-      update_callback=self.renderer.update_display
+      # update_callback=self.renderer.update_display
     )
     
     is_running = True
@@ -73,6 +75,15 @@ class App:
       self.renderer.update_display()
       pygame.display.update()
       self.clock.tick(60)
+
+    # Ensure an output directory for images exists
+    output_dir = os.path.join(os.getcwd(), "output_images")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Generate a unique filename, then save the file 
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = os.path.join(output_dir, f"maze_{timestamp}.png")
+    pygame.image.save(self.screen, output_path)
     
     pygame.quit()
     sys.exit()
