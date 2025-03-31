@@ -1,5 +1,4 @@
 import random
-import time
 
 from algorithms.UnionFind import UnionFind
 from grid.Cell import Cell
@@ -9,10 +8,9 @@ from utils.Direction import Direction
 
 class MazeGenerator:
 
-  def __init__(self, delay: float = 0):
-    self.delay = delay
-
-  def recursive_backtracker(self, grid: Grid, update_callback=None) -> None:
+  
+  @staticmethod
+  def recursive_backtracker(grid: Grid, update_callback=None) -> None:
     """Creates a maze out of a grid using the recursive backtracker algorithm.
     Args:
         grid (Grid): Grid being drawn
@@ -56,7 +54,6 @@ class MazeGenerator:
         randomly_chosen_neighbor.set_is_visited(True) 
         stack.append(randomly_chosen_neighbor)
         if update_callback:
-          time.sleep(self.delay)
           update_callback()
 
     # NOTE: It's critical that we reset the is_visited state on each of the cells for our 
@@ -65,7 +62,8 @@ class MazeGenerator:
     # cells should be expanded or added to their respective data structures.
     grid.reset_visited_cells()    
 
-  def randomized_kruskal(self, grid: Grid, update_callback=None):
+  @staticmethod
+  def randomized_kruskal(grid: Grid, update_callback=None):
     """Runs the iterative randomized Kruskal's algorithm (with sets).
 
     Args:
@@ -110,10 +108,10 @@ class MazeGenerator:
         grid.remove_wall(cell, neighbor)
         unionFind.unionByRank(cell_index, neighbor_index)
         if update_callback:
-          time.sleep(self.delay)
           update_callback()
 
-  def randomized_prim(self, grid: Grid, update_callback=None) -> None:
+  @staticmethod
+  def randomized_prim(grid: Grid, update_callback=None) -> None:
     """Runs the randomized prim's algorithm on a grid. This uses the iterative approach, which allows it to work on large mazes.
 
     Args:
@@ -141,7 +139,6 @@ class MazeGenerator:
             neighbor.set_is_visited(True)
             walls.extend(grid.get_cell_walls(neighbor))
             if update_callback:
-                time.sleep(self.delay)
                 update_callback()
 
     grid.reset_visited_cells()

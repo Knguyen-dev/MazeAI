@@ -14,7 +14,6 @@ from utils.constants import (
   CELL_SIZE,
   CELL_WALL_WIDTH,
   COLS,
-  DELAY,
   HEIGHT,
   RANDOM_SEED,
   ROWS,
@@ -37,7 +36,7 @@ class App:
     # Our setup
     random.seed(RANDOM_SEED)
     self.grid = Grid(ROWS, COLS, (0,0), (COLS-1,ROWS-1))
-    self.maze_generator = MazeGenerator(delay=0)
+    self.maze_generator = MazeGenerator()
     self.maze_solver = MazeSolver()
     self.renderer = Renderer(
       self.screen,
@@ -54,7 +53,7 @@ class App:
     profile(
       self.maze_generator.randomized_prim,
       self.grid, 
-      # update_callback=self.renderer.update_display
+      update_callback=self.renderer.update_display
     )
     
     # For maze solving, make sure the renderer highlights the cells being visited
