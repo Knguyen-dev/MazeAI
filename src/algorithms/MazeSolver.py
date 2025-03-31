@@ -1,9 +1,10 @@
+import heapq
+import math
 from collections import deque
 
 from grid.Cell import Cell
 from grid.Grid import Grid
-from grid.Renderer import Renderer
-import math
+
 
 class MazeSolver:
   
@@ -167,19 +168,74 @@ class MazeSolver:
           if update_callback:
             update_callback()
   
-  def a_star(self, grid:Grid, update_callback=None):
+  @staticmethod
+  def dijkstra(grid: Grid, update_callback=None):
+    """Performs uniform
+
+    Args:
+        grid (Grid): _description_
+        update_callback (_type_, optional): _description_. Defaults to None.
     """
-    Performs A* search on the grid.
-    
+    '''
+    Algorithm:
+    1. Initialize start cell and set it to visited (the latter for highlighting purposes); It's marked as visited on the first iteration.
+    2. Create a priority queue; list of nodes that need to be expanded or even re-expanded
+    3. Create a map "costs" that keeps track of the least cost from start to node n that we've found so far; 
+    4. While frontier still has nodes
+      a. Obtain the cell with the least cost; pop this from the open set (priority queue); 
+      b. Skip the cell if it's already been expanded. Else set the current cell as visited and to be expanded.
+      c. If the cell is the goal cell:
+        - reconstruct path and end search.
+      d. Iterate through unvisited neighbors; we don't want to waste time over already expanded cells:
+        - Calculate cost to get to neighbor from the start.
+        - If neighbor's cost hasn't been recorded (never in fringe) or the neighbor cost is cheaper than what was previously recorded:
+          1. Record the parent of the neighbor
+          2. Update the summed cost for the neighbor 
+          3. Add neighbor to the heap
+          4. If call the update_callback function was defined, call it for animation
+    NOTE: When the priorities of two objects are equal then heap will try to do an object comparison. This can cause issues for our implementation
+    as we're comparing complex objects. So to avoid this, we'll use an unique ID, an index. Remember the idea with 
+    A* is that when we expand a node, we visit it, but we are guaranteed that this is the cheapest cost from start to this node.
+    The "optimization" comes in when we expand neighbors, and we find a cheaper path from start to node n.
+    '''
+    start = grid.get_start_cell()
+    costs = {start: 0}
+    frontier = []
+    heapq.heappush(frontier, (costs[start], grid.get_list_index(start.x, start.y), start)) 
+    while frontier:
+      cost, _, current = heapq.heappop(frontier)  # Ignore the unique identifier
+      if current.get_is_visited():
+        continue
+      current.set_is_visited(True)
+      if grid.is_goal_cell(current):
+        MazeSolver.reconstruct_path(current)
+        return  
+      for neighbor in grid.get_path_neighbors(current):
+        if neighbor.get_is_visited():
+          continue
+        neighbor_cost = costs[current] + neighbor.weight
+        '''
+        Two cases:
+        - Neighbor hasn't been recorded in the fringe, via being tracked by cost.
+        - Neighbor is in cost (already visited), but it's cheaper now
+        In this case update cost and add it to the fringe.
+        '''
+        if neighbor not in costs or neighbor_cost < costs[neighbor]:
+          neighbor.parent = current
+          costs[neighbor] = neighbor_cost
+          heapq.heappush(frontier, (neighbor_cost, grid.get_list_index(neighbor.x, neighbor.y), neighbor))  # Add unique identifier
+          if (update_callback):
+            update_callback()
+
+  def a_star(self, grid:Grid, update_callback=None):
+    """Performs A* search on the grid.
     Args:
       grid (Grid): Grid being searched
       update_callback (_type_, optional): Callback to update visualization. Defaults to None.
     """
     start = grid.get_start_cell()
     goal = grid.get_cell(grid.end_pos[0], grid.end_pos[1])
-    
     g_scores = {start: 0}
-    
     f_scores = {start: MazeSolver.manhattan_distance(start, goal)}
     
     # priority queue: (f_score, cell)
@@ -192,31 +248,23 @@ class MazeSolver:
       open_set.sort(key=lambda x: x[0])
       _, current = open_set.pop(0)
       open_set_hash.remove(current)
-      
       current.set_is_visited(True)
-      
       if grid.is_goal_cell(current):
         MazeSolver.reconstruct_path(current)
         return
-      
       for neighbor in grid.get_path_neighbors(current):
         tentative_g_score = g_scores[current] + neighbor.weight
-        
         # case: path to neighbor is better than any previous one
         if neighbor not in g_scores or tentative_g_score < g_scores[neighbor]:
-          
           # update neighbor's scores and parent
           neighbor.parent = current
           g_scores[neighbor] = tentative_g_score
           f_scores[neighbor] = tentative_g_score + MazeSolver.manhattan_distance(neighbor, goal)
-          
           if neighbor not in open_set_hash and not neighbor.get_is_visited():
             open_set.append((f_scores[neighbor], neighbor))
             open_set_hash.add(neighbor)
-            
             if update_callback:
               update_callback()
-
 
   # Focus on these
   # UCS (Dijkstra)
