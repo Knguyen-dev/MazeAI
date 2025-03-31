@@ -14,12 +14,12 @@ from utils.constants import (
   CELL_SIZE,
   CELL_WALL_WIDTH,
   COLS,
-  DELAY,
   HEIGHT,
   RANDOM_SEED,
   ROWS,
   WIDTH,
 )
+from utils.Profiler import profile
 
 
 class App:
@@ -36,8 +36,8 @@ class App:
     # Our setup
     random.seed(RANDOM_SEED)
     self.grid = Grid(ROWS, COLS, (0,0), (COLS-1,ROWS-1))
-    self.maze_generator = MazeGenerator(delay=0)
-    self.maze_solver = MazeSolver(DELAY)
+    self.maze_generator = MazeGenerator()
+    self.maze_solver = MazeSolver()
     self.renderer = Renderer(
       self.screen,
       self.clock,
@@ -49,14 +49,18 @@ class App:
 
   def run(self):
     """Function involved in the main program loop"""
-    self.maze_generator.recursive_backtracker(
+
+    profile(
+      self.maze_generator.randomized_prim,
       self.grid, 
       update_callback=self.renderer.update_display
     )
-
+    
     # For maze solving, make sure the renderer highlights the cells being visited
     self.renderer.highlight_cells = True
-    self.maze_solver.depth_first_search(
+
+    profile(
+      self.maze_solver.breadth_first_search,
       self.grid,
       update_callback=self.renderer.update_display
     )
