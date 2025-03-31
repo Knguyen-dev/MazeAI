@@ -44,7 +44,7 @@ class MazeGenerator:
       current_cell = stack.pop()
       
       unvisited_neighbors = list(
-        filter(lambda neighbor: not neighbor.get_is_visited(), self.get_all_neighbors(current_cell))
+        filter(lambda neighbor: not neighbor.get_is_visited(), grid.get_all_neighbors(current_cell))
       )
 
       if unvisited_neighbors:
