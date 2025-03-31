@@ -20,12 +20,6 @@ class MazeSolver:
     
     NOTE: Maybe put this in the MazeSolver class 
     """
-    # def abs(x, y):
-    #   if (x-y < 0):
-    #     return -(x-y)
-    #   else:
-    #     return x-y
-
     x_change = abs(cell1.x - cell2.x)
     y_change = abs(cell1.y - cell2.y)
     return x_change + y_change
