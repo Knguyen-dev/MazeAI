@@ -52,7 +52,13 @@ class App:
   def run(self):
     """Function involved in the main program loop"""
 
-    Profiler.profile(
+    profiler = Profiler()
+
+    # clear the log file before profiling
+    Profiler.clear_log_file("execution_data.csv")
+    Profiler.clear_log_file("execution_benchmark.csv")
+
+    profiler.profile(
       self.maze_generator.randomized_kruskal,
       "execution_data.csv",
       self.grid, 
@@ -62,15 +68,16 @@ class App:
     # For maze solving, make sure the renderer highlights the cells being visited
     self.renderer.highlight_cells = True
 
-    Profiler.profile(
+    profiler.profile(
       self.maze_solver.a_star,
       "execution_data.csv",
       self.grid,
       # update_callback=self.renderer.update_display
     )
     
-    Profiler.benchmark(
+    profiler.benchmark(
       self.maze_solver.a_star,
+      "execution_data.csv",
       "execution_benchmark.csv",
       runs=5,
       grid=self.grid,
