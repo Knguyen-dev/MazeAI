@@ -21,7 +21,7 @@ from utils.constants import (
   ROWS,
   WIDTH,
 )
-from utils.Profiler import profile
+from utils.Profiler import Profiler
 
 
 class App:
@@ -52,8 +52,9 @@ class App:
   def run(self):
     """Function involved in the main program loop"""
 
-    profile(
+    Profiler.profile(
       self.maze_generator.randomized_kruskal,
+      "execution_data.csv",
       self.grid, 
       # update_callback=self.renderer.update_display
     )
@@ -61,9 +62,18 @@ class App:
     # For maze solving, make sure the renderer highlights the cells being visited
     self.renderer.highlight_cells = True
 
-    profile(
-      self.maze_solver.dijkstra,
+    Profiler.profile(
+      self.maze_solver.a_star,
+      "execution_data.csv",
       self.grid,
+      # update_callback=self.renderer.update_display
+    )
+    
+    Profiler.benchmark(
+      self.maze_solver.a_star,
+      "execution_benchmark.csv",
+      runs=5,
+      grid=self.grid,
       # update_callback=self.renderer.update_display
     )
     
