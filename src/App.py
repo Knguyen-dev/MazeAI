@@ -59,7 +59,7 @@ class App:
     Profiler.clear_log_file("execution_benchmark.csv")
 
     profiler.profile(
-      self.maze_generator.randomized_kruskal,
+      self.maze_generator.recursive_backtracker,
       "execution_data.csv",
       self.grid, 
       # update_callback=self.renderer.update_display
@@ -69,7 +69,7 @@ class App:
     self.renderer.highlight_cells = True
 
     profiler.profile(
-      self.maze_solver.a_star,
+      self.maze_solver.dijkstra,
       "execution_data.csv",
       self.grid,
       # update_callback=self.renderer.update_display
