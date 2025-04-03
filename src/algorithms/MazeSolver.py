@@ -227,6 +227,7 @@ class MazeSolver:
           if (update_callback):
             update_callback()
 
+  @staticmethod
   def a_star(self, grid:Grid, update_callback=None):
     """Performs A* search on the grid.
     Args:
