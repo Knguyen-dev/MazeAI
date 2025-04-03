@@ -44,8 +44,8 @@ class Grid:
     # Initialize the matrix of cells
     self.matrix = np.empty((num_rows, num_cols), dtype=object)
     for y in range(num_rows):
-        for x in range(num_cols):
-            self.matrix[y, x] = Cell(x, y)
+      for x in range(num_cols):
+        self.matrix[y, x] = Cell(x, y)
 
   def set_agent_pos(self, pos: tuple[int, int]):
     self.agent_pos = pos
@@ -205,7 +205,7 @@ class Grid:
         cell = self.get_cell(x, y)
         cell.set_is_visited(False)
 
-  def get_list_index(self, x: int , y: int) -> int:
+  def get_list_index(self, x: int, y: int) -> int:
     """Gets the list index for a given set of coordinates
 
     Args:
@@ -221,19 +221,39 @@ class Grid:
     return y * self.num_cols + x
 
   def get_cell_walls(self, cell: Cell):
-      """Gets all valid walls of a given cell.
+    """Gets all valid walls of a given cell.
 
-      Args:
-          cell (Cell): The cell whose walls we are fetching.
+    Args:
+        cell (Cell): The cell whose walls we are fetching.
 
-      Returns:
-          list[tuple[Cell, Direction]]: A list of tuples, where each tuple contains:
-              - The neighboring cell on the other side of the wall.
-              - The direction of the wall.
-      """
-      walls = []
-      for direction in Direction:
+    Returns:
+        list[tuple[Cell, Direction]]: A list of tuples, where each tuple contains:
+            - The neighboring cell on the other side of the wall.
+            - The direction of the wall.
+    """
+    walls = []
+    for direction in Direction:
+      neighbor = self.get_neighbor(cell, direction)
+      if neighbor and cell.get_wall(direction):  # Wall is "up" and neighbor exists
+        walls.append((cell, neighbor, direction))
+    return walls
+
+  def get_all_walls(self) -> list[tuple[Cell, Cell, Direction]]:
+    """Returns a list of all walls in a maze
+
+    Returns:
+        list[tuple[Cell, Cell, Direction]]: A list of walls, where each wall is represented as a tuple
+        (cell1, cell2, direction), with cell1 being the starting cell, cell2 being the neighboring cell,
+        and direction being the direction from cell1 to cell2. 
+    """
+    walls = []
+    for y in range(self.num_rows):
+      for x in range(self.num_cols):
+        cell = self.get_cell(x,y)
+        # For each cell, check each direction to see if there's a built wall that's shared by 2 cells;
+        # If so, then add it to our array.
+        for direction in Direction:
           neighbor = self.get_neighbor(cell, direction)
-          if neighbor and cell.get_wall(direction):  # Wall is "up" and neighbor exists
-              walls.append((cell, neighbor, direction))
-      return walls
+          if neighbor and cell.get_wall(direction):
+            walls.append((cell,neighbor,direction))
+    return walls

@@ -3,11 +3,35 @@ import random
 from algorithms.UnionFind import UnionFind
 from grid.Cell import Cell
 from grid.Grid import Grid
-from utils.Direction import Direction
 
 
 class MazeGenerator:
 
+  @staticmethod
+  def add_imperfections(grid: Grid, imperfection_rate: float, update_callback=None) -> None:
+        """Adds imperfections to a perfect maze by randomly removing walls.
+
+        Args:
+            grid (Grid): The grid representing the maze.
+            imperfection_rate (float): A value between 0 and 1 indicating the percentage of walls to remove.
+            update_callback (callable, optional): Function to update the visualization. Defaults to None.
+        """
+        # Calculate the total number of walls in the grid and number of walls to remove
+        # Collect all possible walls;; if there aren't any early return
+        possible_walls = grid.get_all_walls()
+        if not possible_walls:
+           return
+        
+        # From the number of possible walls we have; find the percentage to remove
+        walls_to_remove = int(len(possible_walls) * imperfection_rate)
+
+        # Randomly remove walls; 
+        random.shuffle(possible_walls)
+        for _ in range(walls_to_remove):
+            cell, neighbor, direction = possible_walls.pop()
+            grid.remove_wall(cell, neighbor)
+            if update_callback:
+                update_callback()
   
   @staticmethod
   def recursive_backtracker(grid: Grid, update_callback=None) -> None:
@@ -72,7 +96,7 @@ class MazeGenerator:
     """
     '''
     Algorithm:
-    1. Create a list of walls; we've done this through a for loop that has 2 conditions; each wall is in form (x_index,y_index, direction)
+    1. Create a list of walls; 
     2. Create a set for each cell, each containing just that set. Well use a disjoint set data structure for this.
     3. Randomize the list of walls
     4. For each wall (iteration):
@@ -84,31 +108,21 @@ class MazeGenerator:
     NOTE: We're going to map each cell to a unique index in range [0, num_cols*num_rows-1]. This allows us to 
     associate a cell with a given node in the UnionFind. 
     '''
-    unionFind = UnionFind(grid.num_cols * grid.num_rows)
-    walls = []
-    for x in range(grid.num_cols):
-      for y in range(grid.num_rows):
-
-        # Add the right wall if not on the last column
-        if x < grid.num_cols - 1:
-          walls.append((x,y,Direction.RIGHT)) 
-
-        # Add the bottom wall if not on the last row
-        if y < grid.num_rows - 1:
-          walls.append((x,y,Direction.DOWN))
-
+    unionFind = UnionFind(grid.num_cols * grid.num_rows)    
+    walls = grid.get_all_walls()
+    if not walls:
+       print("Hey no walls to do maze generation on")
+       return
+    
     random.shuffle(walls)
-
     for wall in walls:
-      cell = grid.get_cell(wall[0], wall[1])
-      neighbor = grid.get_neighbor(cell, wall[2])
-      cell_index = grid.get_list_index(cell.x, cell.y)
-      neighbor_index = grid.get_list_index(neighbor.x, neighbor.y)
-      if not unionFind.connected(cell_index, neighbor_index):
-        grid.remove_wall(cell, neighbor)
-        unionFind.unionByRank(cell_index, neighbor_index)
-        if update_callback:
-          update_callback()
+       cell_index = grid.get_list_index(wall[0].x, wall[0].y)
+       neighbor_index = grid.get_list_index(wall[1].x, wall[1].y)
+       if not unionFind.connected(cell_index, neighbor_index):
+          grid.remove_wall(wall[0], wall[1])
+          unionFind.unionByRank(cell_index, neighbor_index)
+          if update_callback:
+             update_callback()
 
   @staticmethod
   def randomized_prim(grid: Grid, update_callback=None) -> None:
@@ -131,6 +145,9 @@ class MazeGenerator:
     start_cell = grid.get_start_cell()
     start_cell.set_is_visited(True)
     walls = grid.get_cell_walls(start_cell)
+    if not walls:
+       return
+
     while walls:
         wall_index = random.randint(0, len(walls) - 1)
         cell, neighbor, direction = walls.pop(wall_index)
@@ -141,8 +158,4 @@ class MazeGenerator:
             if update_callback:
                 update_callback()
 
-    grid.reset_visited_cells()
-    
-
-  
-  
+    grid.reset_visited_cells()  
