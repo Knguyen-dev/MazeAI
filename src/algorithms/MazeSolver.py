@@ -1,5 +1,4 @@
 import heapq
-import math
 from collections import deque
 
 from grid.Cell import Cell
@@ -104,7 +103,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
             
-  def depth_first_search(self, grid: Grid, update_callback=None) -> None:
+  @staticmethod
+  def depth_first_search(grid: Grid, update_callback=None) -> None:
     """Performs a depth first search on the grid.
 
     Args:
@@ -130,7 +130,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
   
-  def greedy_best_first(self, grid:Grid, update_callback=None):
+  @staticmethod
+  def greedy_best_first(grid:Grid, update_callback=None):
     """
     Performs a greedy best first search on the grid.
     
@@ -228,7 +229,7 @@ class MazeSolver:
             update_callback()
 
   @staticmethod
-  def a_star(self, grid:Grid, update_callback=None):
+  def a_star(grid:Grid, update_callback=None):
     """Performs A* search on the grid.
     Args:
       grid (Grid): Grid being searched

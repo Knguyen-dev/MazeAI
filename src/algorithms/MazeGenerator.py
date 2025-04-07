@@ -16,6 +16,11 @@ class MazeGenerator:
             imperfection_rate (float): A value between 0 and 1 indicating the percentage of walls to remove.
             update_callback (callable, optional): Function to update the visualization. Defaults to None.
         """
+
+        if imperfection_rate <= 0 or imperfection_rate > 1:
+           return # return early if the rate is invalid; include zero to indicate no imperfections should be added.
+
+
         # Calculate the total number of walls in the grid and number of walls to remove
         # Collect all possible walls;; if there aren't any early return
         possible_walls = grid.get_all_walls()

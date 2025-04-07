@@ -244,16 +244,26 @@ class Grid:
     Returns:
         list[tuple[Cell, Cell, Direction]]: A list of walls, where each wall is represented as a tuple
         (cell1, cell2, direction), with cell1 being the starting cell, cell2 being the neighboring cell,
-        and direction being the direction from cell1 to cell2. 
+        and direction being the direction from cell1 to cell2.
     """
     walls = []
     for y in range(self.num_rows):
       for x in range(self.num_cols):
-        cell = self.get_cell(x,y)
+        cell = self.get_cell(x, y)
         # For each cell, check each direction to see if there's a built wall that's shared by 2 cells;
         # If so, then add it to our array.
         for direction in Direction:
           neighbor = self.get_neighbor(cell, direction)
           if neighbor and cell.get_wall(direction):
-            walls.append((cell,neighbor,direction))
+            walls.append((cell, neighbor, direction))
     return walls
+
+  def reset_solved_state(self):
+    """Resets the path for all cells in the grid.
+
+    This is useful for algorithms that need to re-calculate paths without needing to create a new instance of the grid.
+    """
+    for y in range(self.num_rows):
+      for x in range(self.num_cols):
+        cell = self.get_cell(x, y)
+        cell.reset()
