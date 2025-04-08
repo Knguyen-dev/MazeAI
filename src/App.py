@@ -11,13 +11,15 @@ from algorithms.MazeSolver import MazeSolver
 from grid.Grid import Grid
 from grid.Renderer import Renderer
 
+from utils.Profiler import Profiler
+
 # You can probably create a separate rendering class
 from utils.constants import (
   BLACK,
   CELL_SIZE,
   CELL_WALL_WIDTH,
 )
-from utils.Profiler import profile
+# from utils.Profiler import profile
 
 
 class App:
@@ -39,6 +41,8 @@ class App:
   def __init__(self, args):
     """Wait don't delete main.py yet. Sometimes tis class doesn't work as the program just crashes"""
     self.args = args
+
+    self.profile = Profiler()
 
     # Initialize default arguments if needed
     self.args.n = self.args.n if self.args.n is not None else 30
@@ -97,7 +101,7 @@ class App:
 
     # If user wants to log the generator execution, we'll do it here; else just run the function
     if self.args.log:
-      profile(
+      self.profile(
         self.grid.num_rows,
         self.grid.num_cols,
         "maze_generator.csv",
@@ -124,7 +128,7 @@ class App:
       return
 
     if self.args.log:
-      profile(
+      self.profile(
         self.grid.num_rows,
         self.grid.num_cols,
         "execution_log.txt",
