@@ -12,11 +12,6 @@ from grid.Grid import Grid
 from grid.Renderer import Renderer
 
 # You can probably create a separate rendering class
-from utils.constants import (
-  BLACK,
-  CELL_SIZE,
-  CELL_WALL_WIDTH,
-)
 from utils.Profiler import profile
 
 
@@ -64,12 +59,15 @@ class App:
     self.renderer = None
     
     if args.render:
+      CELL_SIZE = 10
+      CELL_WALL_WIDTH = 1 
+
       width = self.args.n * CELL_SIZE  # should be the same for now
       height = self.args.n * CELL_SIZE
       pygame.init()
       self.screen = pygame.display.set_mode((width, height))
       pygame.display.set_caption("MazeAI")
-      self.screen.fill(BLACK)
+      self.screen.fill((0,0,0))
       self.clock = pygame.time.Clock()
       self.renderer = Renderer(
         self.screen,
