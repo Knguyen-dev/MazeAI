@@ -1,5 +1,4 @@
 import heapq
-import math
 from collections import deque
 
 from grid.Cell import Cell
@@ -104,7 +103,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
             
-  def depth_first_search(self, grid: Grid, update_callback=None) -> None:
+  @staticmethod
+  def depth_first_search(grid: Grid, update_callback=None) -> None:
     """Performs a depth first search on the grid.
 
     Args:
@@ -130,7 +130,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
   
-  def greedy_best_first(self, grid:Grid, update_callback=None):
+  @staticmethod
+  def greedy_best_first(grid:Grid, update_callback=None):
     """
     Performs a greedy best first search on the grid.
     
@@ -142,7 +143,7 @@ class MazeSolver:
     goal = grid.get_goal_cell()
     start.set_is_visited(True)
     queue = []
-    heapq.heappush(queue, (MazeSolver.manhattan_distance(start, goal), grid.get_list_index(start.x, start.y), start))  # Add unique identifier
+    heapq.heappush(queue, (MazeSolver.manhattan_distance(start, goal), grid.get_list_index(start), start))  # Add unique identifier
     while queue:
       
       distance, index, current_node = heapq.heappop(queue)
@@ -157,7 +158,7 @@ class MazeSolver:
           
           # add to queue with its heuristic value
           heuristic = MazeSolver.manhattan_distance(neighbor, goal)
-          heapq.heappush(queue, (heuristic, grid.get_list_index(neighbor.x, neighbor.y), neighbor)) 
+          heapq.heappush(queue, (heuristic, grid.get_list_index(neighbor), neighbor)) 
           if update_callback:
             update_callback()
   
@@ -173,7 +174,7 @@ class MazeSolver:
     expand in all directions instead of towards some region.
     """
     start = grid.get_start_cell()
-    start_index = grid.get_list_index(start.x, start.y)
+    start_index = grid.get_list_index(start)
     costs = {start_index: 0}
 
     open_set = []
@@ -191,7 +192,7 @@ class MazeSolver:
 
       for neighbor in grid.get_path_neighbors(current_node):
         tentative_g_score = costs[current_index] + neighbor.weight
-        neighbor_index = grid.get_list_index(neighbor.x, neighbor.y)
+        neighbor_index = grid.get_list_index(neighbor)
 
         # Case: If the neighbor hasn't been seen before, or the current path from start to neighbor is cheapest than the previous one found
         # In this case, update scores, and add neighbor to visited list if it's not there already.
@@ -213,7 +214,7 @@ class MazeSolver:
       update_callback (_type_, optional): Callback to update visualization. Defaults to None.
     """
     start = grid.get_start_cell()
-    start_index = grid.get_list_index(start.x, start.y) 
+    start_index = grid.get_list_index(start) 
     goal = grid.get_goal_cell()
     g_scores = {start_index: 0}
     f_scores = {start_index: MazeSolver.manhattan_distance(start, goal)}
@@ -237,7 +238,7 @@ class MazeSolver:
       
       for neighbor in grid.get_path_neighbors(current_node):
         tentative_g_score = g_scores[current_index] + neighbor.weight
-        neighbor_index = grid.get_list_index(neighbor.x, neighbor.y)
+        neighbor_index = grid.get_list_index(neighbor)
 
         # Case: If the neighbor hasn't been seen before, or the current path from start to neighbor is cheapest than the previous one found
         # In this case, update scores, and add neighbor to visited list if it's not there already.

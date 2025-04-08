@@ -16,6 +16,11 @@ class MazeGenerator:
             imperfection_rate (float): A value between 0 and 1 indicating the percentage of walls to remove.
             update_callback (callable, optional): Function to update the visualization. Defaults to None.
         """
+
+        if imperfection_rate <= 0 or imperfection_rate > 1:
+           return # return early if the rate is invalid; include zero to indicate no imperfections should be added.
+
+
         # Calculate the total number of walls in the grid and number of walls to remove
         # Collect all possible walls;; if there aren't any early return
         possible_walls = grid.get_all_walls()
@@ -116,8 +121,8 @@ class MazeGenerator:
     
     random.shuffle(walls)
     for wall in walls:
-       cell_index = grid.get_list_index(wall[0].x, wall[0].y)
-       neighbor_index = grid.get_list_index(wall[1].x, wall[1].y)
+       cell_index = grid.get_list_index(wall[0])
+       neighbor_index = grid.get_list_index(wall[1])
        if not unionFind.connected(cell_index, neighbor_index):
           grid.remove_wall(wall[0], wall[1])
           unionFind.unionByRank(cell_index, neighbor_index)

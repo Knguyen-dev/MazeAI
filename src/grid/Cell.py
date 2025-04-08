@@ -11,10 +11,10 @@ class Cell:
     """
     self.x = x
     self.y = y
-    self.weight = 1 # Default weight
+    self.weight = 1  # Default weight
     self.parent = None
 
-    '''
+    """
     Here are the bit definitions:
     1. is_visited
     2. is_in_path
@@ -25,18 +25,18 @@ class Cell:
 
     NOTE: The is_visited and is_in_path flags are set to false by default. Then 
     the walls are all set to true to indicate they're all up.
-    '''
+    """
     self.flags = 0b001111
 
   def set_bit(self, bit_index):
-    self.flags |= (1 << bit_index)
-  
+    self.flags |= 1 << bit_index
+
   def clear_bit(self, bit_index):
     self.flags &= ~(1 << bit_index)
-  
+
   def get_bit(self, bit_index):
     return self.flags & (1 << bit_index)
-  
+
   def set_is_visited(self, value: bool) -> None:
     """Sets whether or not a cell is visited
 
@@ -86,7 +86,7 @@ class Cell:
       return bool(self.get_bit(1))
     else:
       return bool(self.get_bit(0))
-      
+
   def set_wall(self, direction: Direction, is_up: bool) -> None:
     """Sets the status of a wall in a given direction
 
@@ -115,7 +115,13 @@ class Cell:
         self.set_bit(0)
       else:
         self.clear_bit(0)
-      
+
+  def reset(self) -> None:
+    """Resets the cell to its initial state, useful for re-initializing a cell for another maze solver"""
+    self.set_in_path(False)
+    self.set_is_visited(False)
+    self.parent = None  # Reset the parent reference, allowing the path finding algorithms to re-compute the path from scratch.
+
   def __repr__(self) -> None:
     return (
       f"Cell(x={self.x}, y={self.y}, weight={self.weight}, is_visited={self.is_visited}, "
