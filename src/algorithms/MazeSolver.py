@@ -1,5 +1,4 @@
 import heapq
-import math
 from collections import deque
 
 from grid.Cell import Cell
@@ -104,7 +103,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
             
-  def depth_first_search(self, grid: Grid, update_callback=None) -> None:
+  @staticmethod
+  def depth_first_search(grid: Grid, update_callback=None) -> None:
     """Performs a depth first search on the grid.
 
     Args:
@@ -130,7 +130,8 @@ class MazeSolver:
           if update_callback:
             update_callback()
   
-  def greedy_best_first(self, grid:Grid, update_callback=None):
+  @staticmethod
+  def greedy_best_first(grid:Grid, update_callback=None):
     """
     Performs a greedy best first search on the grid.
     
@@ -139,8 +140,7 @@ class MazeSolver:
       update_callback (_type_, optional): Callback to update visualization. Defaults to None.
     """
     start = grid.get_start_cell()
-    goal = grid.get_cell(grid.end_pos[0], grid.end_pos[1])
-    
+    goal = grid.get_goal_cell()
     start.set_is_visited(True)
     
     # each element is a tuple of (heuristic_value, cell)
@@ -201,7 +201,7 @@ class MazeSolver:
     start = grid.get_start_cell()
     costs = {start: 0}
     frontier = []
-    heapq.heappush(frontier, (costs[start], grid.get_list_index(start.x, start.y), start)) 
+    heapq.heappush(frontier, (costs[start], grid.get_list_index(start), start)) 
     while frontier:
       cost, _, current = heapq.heappop(frontier)  # Ignore the unique identifier
       if current.get_is_visited():
@@ -223,19 +223,19 @@ class MazeSolver:
         if neighbor not in costs or neighbor_cost < costs[neighbor]:
           neighbor.parent = current
           costs[neighbor] = neighbor_cost
-          heapq.heappush(frontier, (neighbor_cost, grid.get_list_index(neighbor.x, neighbor.y), neighbor))  # Add unique identifier
+          heapq.heappush(frontier, (neighbor_cost, grid.get_list_index(neighbor), neighbor))  # Add unique identifier
           if (update_callback):
             update_callback()
 
   @staticmethod
-  def a_star(self, grid:Grid, update_callback=None):
+  def a_star(grid:Grid, update_callback=None):
     """Performs A* search on the grid.
     Args:
       grid (Grid): Grid being searched
       update_callback (_type_, optional): Callback to update visualization. Defaults to None.
     """
     start = grid.get_start_cell()
-    goal = grid.get_cell(grid.end_pos[0], grid.end_pos[1])
+    goal = grid.get_goal_cell()
     g_scores = {start: 0}
     f_scores = {start: MazeSolver.manhattan_distance(start, goal)}
     
@@ -267,9 +267,6 @@ class MazeSolver:
             if update_callback:
               update_callback()
 
-  # Focus on these
-  # UCS (Dijkstra)
-  # A*
   # JPS (Jump Point Search) (challenge)
   # Optional and for fun:
   # wall following (left or right hand rule), pledge algorithm, tremaux, dead end filling, 

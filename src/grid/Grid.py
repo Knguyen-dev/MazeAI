@@ -85,6 +85,23 @@ class Grid:
 
     return start_cell
 
+  def get_goal_cell(self) -> Cell:
+    """Returns the goal cell
+
+    Raises:
+      RuntimeError: When goal cell doesn't exist
+
+    Returns:
+        Cel: The goal cell.
+    """
+    goal_cell = self.get_cell(self.end_pos[0], self.end_pos[1])
+    if not goal_cell:
+      raise RuntimeError(
+        "Goal cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!"
+      )
+
+    return goal_cell
+
   def is_goal_cell(self, cell: Cell) -> bool:
     """Returns whether or not a given cell is the goal or end cell
 
@@ -205,7 +222,7 @@ class Grid:
         cell = self.get_cell(x, y)
         cell.set_is_visited(False)
 
-  def get_list_index(self, x: int, y: int) -> int:
+  def get_list_index(self, cell: Cell) -> int:
     """Gets the list index for a given set of coordinates
 
     Args:
@@ -218,7 +235,7 @@ class Grid:
     NOTE: If the matrix were flatten down into a giant list, this function maps an x-y index coordinate
     into an index for that giant list. (x,y) -> x. This formula is a common result.
     """
-    return y * self.num_cols + x
+    return cell.y * self.num_cols + cell.x
 
   def get_cell_walls(self, cell: Cell):
     """Gets all valid walls of a given cell.
@@ -244,16 +261,26 @@ class Grid:
     Returns:
         list[tuple[Cell, Cell, Direction]]: A list of walls, where each wall is represented as a tuple
         (cell1, cell2, direction), with cell1 being the starting cell, cell2 being the neighboring cell,
-        and direction being the direction from cell1 to cell2. 
+        and direction being the direction from cell1 to cell2.
     """
     walls = []
     for y in range(self.num_rows):
       for x in range(self.num_cols):
-        cell = self.get_cell(x,y)
+        cell = self.get_cell(x, y)
         # For each cell, check each direction to see if there's a built wall that's shared by 2 cells;
         # If so, then add it to our array.
         for direction in Direction:
           neighbor = self.get_neighbor(cell, direction)
           if neighbor and cell.get_wall(direction):
-            walls.append((cell,neighbor,direction))
+            walls.append((cell, neighbor, direction))
     return walls
+
+  def reset_solved_state(self):
+    """Resets the path for all cells in the grid.
+
+    This is useful for algorithms that need to re-calculate paths without needing to create a new instance of the grid.
+    """
+    for y in range(self.num_rows):
+      for x in range(self.num_cols):
+        cell = self.get_cell(x, y)
+        cell.reset()
