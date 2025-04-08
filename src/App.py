@@ -42,7 +42,7 @@ class App:
     """Wait don't delete main.py yet. Sometimes tis class doesn't work as the program just crashes"""
     self.args = args
 
-    self.profile = Profiler()
+    self.profiler = Profiler()
 
     # Initialize default arguments if needed
     self.args.n = self.args.n if self.args.n is not None else 30
@@ -101,14 +101,13 @@ class App:
 
     # If user wants to log the generator execution, we'll do it here; else just run the function
     if self.args.log:
-      self.profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "maze_generator.csv",
-        generator_fn,
-        self.grid,
-        animate_fn
+      self.profiler.profile(
+        generator_fn,  
+        "execution_log.csv",  
+        self.grid,  
+        animate_fn  
       )
+      # self.profile
     else:
       generator_fn(self.grid, animate_fn)
 
@@ -128,14 +127,11 @@ class App:
       return
 
     if self.args.log:
-      self.profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "execution_log.txt",
-        solver_fn,
-        self.grid,
-        # Only animation the process of solving the maze if the user has specified they want animation; also need rendering on as well.
-        update_callback=animate_fn
+      self.profiler.profile(
+      solver_fn,  
+      "execution_log.csv",  
+      self.grid,  
+      update_callback=animate_fn  
       )
     else:
       solver_fn(
@@ -149,6 +145,17 @@ class App:
     if self.renderer:
       self.renderer.highlight_cells = True
     self.solve_maze()
+
+    if self.args.log:
+      solver_function = App.solver_map.get(self.args.solver)
+      if solver_function:
+        self.profiler.performance_analysis(
+          func=solver_function,
+          grid_sizes=[10, 20, 30, 60],
+          log_file="execution_log.csv",
+          output_plot_path="performance_analysis.png",
+          maze_generator=App.generator_map.get(self.args.generator),
+        )
 
     # If rendering is enabled, have a loop opened to render teh winodw
     if self.renderer:
@@ -183,7 +190,7 @@ def parse_args():
   parser.add_argument("--generator", choices=generator_choices)
   parser.add_argument("--solver", choices=solver_choices)
   
-  parser.add_argument("--imperfection_rate", type=float, default=0.5, choices=[i / 10 for i in range(11)])
+  parser.add_argument("--imperfection_rate", type=float, default=0.0, choices=[i / 10 for i in range(11)])
 
   # Whether the program is going to show the screen at all; this is needed to also have things animate
   parser.add_argument("--render", action="store_true")
@@ -203,3 +210,4 @@ def main():
 
 if __name__ == "__main__":
   main()
+
