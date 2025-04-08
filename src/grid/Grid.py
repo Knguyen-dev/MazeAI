@@ -85,6 +85,16 @@ class Grid:
 
     return start_cell
 
+  def get_goal_cell(self) -> Cell:
+    """Returns the goal cell"""
+    goal_cell = self.get_cell(self.start_pos[0], self.start_pos[1])
+    if not goal_cell:
+      raise RuntimeError(
+        "Goal cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!"
+      )
+
+    return goal_cell
+
   def is_goal_cell(self, cell: Cell) -> bool:
     """Returns whether or not a given cell is the goal or end cell
 
@@ -216,7 +226,7 @@ class Grid:
         int: The list index for a cell in that position.
 
     NOTE: If the matrix were flatten down into a giant list, this function maps an x-y index coordinate
-    into an index for that giant list. (x,y) -> x. This formula is a common result.
+    into an index for that giant list. (x,y) -> x. This can be used as a unique identifier for the given cell.
     """
     return y * self.num_cols + x
 
