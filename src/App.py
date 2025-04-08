@@ -108,6 +108,9 @@ class App:
     else:
       generator_fn(self.grid, animate_fn)
 
+    # Maze has been generated, add imperfections if needed
+    MazeGenerator.add_imperfections(self.grid, self.args.imperfection_rate, animate_fn)
+
   def solve_maze(self):
     """Solves the maze using the specified solver from the command line arguments."""
     
@@ -175,6 +178,8 @@ def parse_args():
   parser.add_argument("--end", nargs=2, type=int)
   parser.add_argument("--generator", choices=generator_choices)
   parser.add_argument("--solver", choices=solver_choices)
+  
+  parser.add_argument("--imperfection_rate", type=float, default=0.5, choices=[i / 10 for i in range(11)])
 
   # Whether the program is going to show the screen at all; this is needed to also have things animate
   parser.add_argument("--render", action="store_true")

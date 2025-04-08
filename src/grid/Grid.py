@@ -85,6 +85,23 @@ class Grid:
 
     return start_cell
 
+  def get_goal_cell(self) -> Cell:
+    """Returns the goal cell
+
+    Raises:
+      RuntimeError: When goal cell doesn't exist
+
+    Returns:
+        Cel: The goal cell.
+    """
+    goal_cell = self.get_cell(self.end_pos[0], self.end_pos[1])
+    if not goal_cell:
+      raise RuntimeError(
+        "Goal cell does not exist. Ensure grid.start_pos isn't modified after Grid class instantiation!"
+      )
+
+    return goal_cell
+
   def is_goal_cell(self, cell: Cell) -> bool:
     """Returns whether or not a given cell is the goal or end cell
 
@@ -205,7 +222,7 @@ class Grid:
         cell = self.get_cell(x, y)
         cell.set_is_visited(False)
 
-  def get_list_index(self, x: int, y: int) -> int:
+  def get_list_index(self, cell: Cell) -> int:
     """Gets the list index for a given set of coordinates
 
     Args:
@@ -218,7 +235,7 @@ class Grid:
     NOTE: If the matrix were flatten down into a giant list, this function maps an x-y index coordinate
     into an index for that giant list. (x,y) -> x. This formula is a common result.
     """
-    return y * self.num_cols + x
+    return cell.y * self.num_cols + cell.x
 
   def get_cell_walls(self, cell: Cell):
     """Gets all valid walls of a given cell.

@@ -121,8 +121,8 @@ class MazeGenerator:
     
     random.shuffle(walls)
     for wall in walls:
-       cell_index = grid.get_list_index(wall[0].x, wall[0].y)
-       neighbor_index = grid.get_list_index(wall[1].x, wall[1].y)
+       cell_index = grid.get_list_index(wall[0])
+       neighbor_index = grid.get_list_index(wall[1])
        if not unionFind.connected(cell_index, neighbor_index):
           grid.remove_wall(wall[0], wall[1])
           unionFind.unionByRank(cell_index, neighbor_index)
