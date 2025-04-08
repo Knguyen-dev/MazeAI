@@ -40,21 +40,20 @@ class MazeSolver:
     return sqrt((cell1.x - cell2.x)**2 + (cell1.y - cell2.y)**2) 
 
   @staticmethod
-  def reconstruct_path(cell: Cell) -> list[Cell]:
+  def reconstruct_path(cell: Cell, grid: Grid, update_callback) -> None:
     """Reconstructs the path that leads to cell.
-
     Args:
         cell (Cell): End node on a given pat 
-
-    Returns:
-      list[Cell]: A list of cells that were in the start path to get to the current cell.
+        grid (Grid): Grid that the node lies on
+        update_callback (func | None): A function that renders cells
     """
     path = []
     while cell:
       path.insert(0, cell)
-      cell.set_in_path(True)
+      grid.set_is_in_path(cell, True)
       cell = cell.parent
-    return path
+      if (update_callback):
+        update_callback()
 
   @staticmethod
   def breadth_first_search(grid: Grid, update_callback=None) -> None: 
@@ -85,24 +84,25 @@ class MazeSolver:
     NOTE: We're assuming there does exist a path from start to goal
     '''
     start = grid.get_start_cell()
-    start.set_is_visited(True)
+    grid.set_is_visited(start, True)
 
     queue = deque([start])
     while queue:
       current = queue.popleft()
       if grid.is_goal_cell(current):
         # realistically break out of the loop and in the final ends of the function run one last frame to render goal nodes
-        MazeSolver.reconstruct_path(current)
+        MazeSolver.reconstruct_path(current, grid, update_callback)
         return
       for neighbor in grid.get_path_neighbors(current):
         if not neighbor.get_is_visited():
-          neighbor.set_is_visited(True)
+          grid.set_is_visited(neighbor, True)
           neighbor.parent = current
           queue.append(neighbor)
-          
-          if update_callback:
-            update_callback()
-            
+
+      # After all neighbors have been processed, render all cells in the pipeline.
+      if update_callback:
+        update_callback()
+           
   @staticmethod
   def depth_first_search(grid: Grid, update_callback=None) -> None:
     """Performs a depth first search on the grid.
@@ -113,20 +113,21 @@ class MazeSolver:
 
     """
     start = grid.get_start_cell()
-    start.set_is_visited(True)
+    grid.set_is_visited(start, True)
     stack = [start]
-    
     while stack:
       current = stack.pop()  # pop from the end (lifo)
       if grid.is_goal_cell(current):
-        MazeSolver.reconstruct_path(current)
+        MazeSolver.reconstruct_path(current, grid, update_callback)
         return
-      
       for neighbor in grid.get_path_neighbors(current):
         if not neighbor.get_is_visited():
-          neighbor.set_is_visited(True)
+          grid.set_is_visited(neighbor, True)
           neighbor.parent = current
           stack.append(neighbor)
+
+          # NOTE: As a result you're highlighting one neighbor at a time. Though
+          # this doesn't affect functionality, it's more for aesthetics. 
           if update_callback:
             update_callback()
   
@@ -141,19 +142,17 @@ class MazeSolver:
     """
     start = grid.get_start_cell()
     goal = grid.get_goal_cell()
-    start.set_is_visited(True)
+    grid.set_is_visited(start, True)
     queue = []
     heapq.heappush(queue, (MazeSolver.manhattan_distance(start, goal), grid.get_list_index(start), start))  # Add unique identifier
     while queue:
-      
       distance, index, current_node = heapq.heappop(queue)
-      
       if grid.is_goal_cell(current_node):
-        MazeSolver.reconstruct_path(current_node)
+        MazeSolver.reconstruct_path(current_node, grid, update_callback)
         return
       for neighbor in grid.get_path_neighbors(current_node):
         if not neighbor.get_is_visited():
-          neighbor.set_is_visited(True)
+          grid.set_is_visited(neighbor, True)
           neighbor.parent = current_node
           
           # add to queue with its heuristic value
@@ -172,6 +171,9 @@ class MazeSolver:
     NOTE: Algorithm is the same as A*, except we're not going to use heuristics. Dijkstra ends up exploring the entire graph most of 
     the time being it has no idea where the goal is, and so it constantly expands. Since we're basically in a uniform weight graph, it's going to
     expand in all directions instead of towards some region.
+
+    NOTE: Remember that get_list_index returns a unique identifer for each cell in the grid. So instead of storing the cells in your cost maps, or external data structures, 
+    you can store the indices, which allows you to save a bit on memory and potentially performance.
     """
     start = grid.get_start_cell()
     start_index = grid.get_list_index(start)
@@ -184,10 +186,10 @@ class MazeSolver:
     while open_set:
       g_score, current_index, current_node = heapq.heappop(open_set)
       open_set_hash.remove(current_index)
-      current_node.set_is_visited(True)
+      grid.set_is_visited(current_node, True)
 
       if grid.is_goal_cell(current_node):
-        MazeSolver.reconstruct_path(current_node)
+        MazeSolver.reconstruct_path(current_node, grid, update_callback)
         return
 
       for neighbor in grid.get_path_neighbors(current_node):
@@ -203,8 +205,8 @@ class MazeSolver:
           if neighbor_index not in open_set_hash:
             heapq.heappush(open_set, (costs[neighbor_index], neighbor_index, neighbor))
             open_set_hash.add(neighbor_index)
-            if update_callback:
-              update_callback()
+      if update_callback:
+        update_callback()
 
   @staticmethod
   def a_star(grid:Grid, update_callback=None):
@@ -230,10 +232,10 @@ class MazeSolver:
       # Pop node with smallest f_score from open_set, mark it as visited and remove it from open set (both the heap and map)
       f_score, current_index, current_node = heapq.heappop(open_set)
       open_set_hash.remove(current_index)
-      current_node.set_is_visited(True)
+      grid.set_is_visited(current_node, True)
       
       if grid.is_goal_cell(current_node):
-        MazeSolver.reconstruct_path(current_node)
+        MazeSolver.reconstruct_path(current_node, grid, update_callback)
         return
       
       for neighbor in grid.get_path_neighbors(current_node):
@@ -249,8 +251,12 @@ class MazeSolver:
           if neighbor_index not in open_set_hash:
             heapq.heappush(open_set, (f_scores[neighbor_index], neighbor_index, neighbor))
             open_set_hash.add(neighbor_index)
-            if update_callback:
-              update_callback()
+
+
+      # After processing data, render things; note that the main thing that's changed is that 
+      # the current node is now visited. You could place this callback condition earlier in the while loop
+      if update_callback:
+        update_callback()
 
   
   # JPS (Jump Point Search) (challenge)

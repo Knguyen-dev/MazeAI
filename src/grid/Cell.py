@@ -56,7 +56,7 @@ class Cell:
     """
     return bool(self.get_bit(5))
 
-  def set_in_path(self, value: bool) -> None:
+  def set_is_in_path(self, value: bool) -> None:
     """Sets whether a cell is on the goal path or not
     Args:
         value (bool): If true, cell is on the goal path
@@ -66,7 +66,7 @@ class Cell:
     else:
       self.clear_bit(4)
 
-  def get_in_path(self) -> bool:
+  def get_is_in_path(self) -> bool:
     return bool(self.get_bit(4))
 
   def get_wall(self, direction: Direction) -> bool:
@@ -118,7 +118,7 @@ class Cell:
 
   def reset(self) -> None:
     """Resets the cell to its initial state, useful for re-initializing a cell for another maze solver"""
-    self.set_in_path(False)
+    self.set_is_in_path(False)
     self.set_is_visited(False)
     self.parent = None  # Reset the parent reference, allowing the path finding algorithms to re-compute the path from scratch.
 

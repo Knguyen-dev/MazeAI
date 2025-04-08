@@ -25,6 +25,7 @@ class App:
   # this maps command line arguments to algorithms, making it easy to select the appropriate
   # algorithm with a CLI.
   generator_map = {
+    "random_dfs": MazeGenerator.recursive_backtracker,
     "prim": MazeGenerator.randomized_prim,
     "kruskal": MazeGenerator.randomized_kruskal,
   }
@@ -39,7 +40,6 @@ class App:
   def __init__(self, args):
     """Wait don't delete main.py yet. Sometimes tis class doesn't work as the program just crashes"""
     self.args = args
-
 
     # Maze Generation args
     self.args.generator = self.args.generator if self.args.generator else "prim"
@@ -59,17 +59,10 @@ class App:
     self.args.render = self.args.render if self.args.render is not None else False
     self.args.log = self.args.log if self.args.log is not None else False
     self.args.save = self.args.save if self.args.save is not None else False
-    
-
-    
-    
-
-    
-    self.grid = Grid(self.args.n, self.args.n, self.args.start, self.args.end)
     self.screen = None
     self.clock = None
     self.renderer = None
-
+    
     if args.render:
       width = self.args.n * CELL_SIZE  # should be the same for now
       height = self.args.n * CELL_SIZE
@@ -81,7 +74,6 @@ class App:
       self.renderer = Renderer(
         self.screen,
         self.clock,
-        self.grid,
         CELL_SIZE,
         CELL_WALL_WIDTH,
         # Don't highlight cells during maze generation; this is used for visualization of the maze generation process
@@ -89,6 +81,8 @@ class App:
         # maze generation algorithms using the same state to mark cells as visited for some algorithms.
         False,
       )
+
+    self.grid = Grid(self.renderer, self.args.n, self.args.n, self.args.start, self.args.end)
 
   def generate_maze(self):
     """Generates the maze using the specified algorithm from the command line arguments."""
@@ -145,6 +139,12 @@ class App:
       
   def run(self):
     """Function involved in the main program loop"""
+
+    # Draw the grid; all cells should be drawn at the time
+    # the grid is created. So we just need to request one animation frame to draw it
+    self.renderer.update_display()
+    
+    # Generate and solve maze
     self.generate_maze()
     if self.renderer:
       self.renderer.highlight_cells = True

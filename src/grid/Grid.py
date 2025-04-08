@@ -1,12 +1,14 @@
 import numpy as np
 
 from grid.Cell import Cell
+from grid.Renderer import Renderer
 from utils.Direction import Direction
 
 
 class Grid:
   def __init__(
     self,
+    renderer: Renderer | None,
     num_rows: int,
     num_cols: int,
     start_pos: tuple[int, int] = (0, 0),
@@ -15,18 +17,20 @@ class Grid:
     """Creates a grid object used to represent the maze.
 
     Args:
-        surface (pygame.Surface): Surface we're drawing the grid on
+        renderer (Renderer): Class that's going to handle the rendering of cells
         num_rows (int): Number of rows in the grid
         num_cols (int): Number of columns in the grid
         start_pos (tuple[int, int], optional): Start position (0-index) of the search within a grid. Defaults to (0,0).
         end_pos (tuple[int, int], optional): End position (0-indexed) of a search within a grid. Defaults to the bottom right corner of the grid.
     """
+
+    self.renderer = renderer
     self.num_rows = num_rows
     self.num_cols = num_cols
 
     # Initialize start and end positions
     self.start_pos = start_pos
-    self.end_pos = end_pos if end_pos else (num_cols - 1, num_rows - 1)
+    self.end_pos = end_pos if end_pos is not None else (num_cols - 1, num_rows - 1)
 
     # Ensure the start and end positions are valid
     if not self.is_valid_position(self.start_pos[0], self.start_pos[1]):
@@ -34,24 +38,40 @@ class Grid:
     if not self.is_valid_position(self.end_pos[0], self.end_pos[1]):
       raise ValueError("End position must be in range")
 
-    """
-    Index position of the agent drawing the maze or agent solving the maze
-    NOTE: I don't know if all functions will use this
-    """
-    self.agent_pos: tuple[int, int] = (0, 0)
-    self.is_agent_visible: bool = False
-
     # Initialize the matrix of cells
     self.matrix = np.empty((num_rows, num_cols), dtype=object)
     for y in range(num_rows):
       for x in range(num_cols):
         self.matrix[y, x] = Cell(x, y)
 
-  def set_agent_pos(self, pos: tuple[int, int]):
-    self.agent_pos = pos
+        # As a result, all cells are registered as dirty, 
+        # and so all cells will be rendered on first try
+        self.renderer.mark_dirty(self.matrix[y,x])
 
-  def set_agent_visibility(self, is_agent_visible: bool):
-    self.is_agent_visible = is_agent_visible
+
+  # NOTE: I feel like if you're establishing that we should mess with 
+  # these flags in the grid API, please create the logic to ensure that 
+  # we are not needlessly pushing cells into the dequeue rendering pipeline
+
+
+
+  # Separate API where the renderer and cell work together
+  def set_is_in_path(self, cell: Cell, is_in_path: bool) -> None:
+    cell.set_is_in_path(is_in_path)
+    if self.renderer:
+      self.renderer.mark_dirty(cell)
+
+  def set_is_visited(self, cell: Cell, is_visited: bool) -> None:
+    cell.set_is_visited(is_visited)
+    if self.renderer:
+      self.renderer.mark_dirty(cell)
+  
+  def set_wall(self, cell: Cell, direction: Direction, is_up: bool) -> None:
+    cell.set_wall(direction, is_up)
+    if self.renderer:
+      self.renderer.mark_dirty(cell)
+
+    
 
   def get_cell(self, x: int, y: int) -> Cell | None:
     """Gets a cell using its x and y coordinates. Visualize (0,0) as the top left of the grid.
@@ -209,14 +229,18 @@ class Grid:
       raise ValueError(f"Failed to determine the direction from {cell} to {neighbor}!")
 
     direction_from_neighbor = direction_to_neighbor.opposite
-
-    # Mark these as false, on the next render, the wall won't be drawn
-    cell.set_wall(direction_to_neighbor, False)
-    neighbor.set_wall(direction_from_neighbor, False)
+    self.set_wall(cell, direction_to_neighbor, False)
+    self.set_wall(neighbor, direction_from_neighbor, False)
 
   def reset_visited_cells(self):
     """Sets the visited status of all nodes to false. This is here to help with maze generation algorithms since
-    many of them use a visited list, and it's convenient for them to use the is_visited property"""
+    many of them use a visited list, and it's convenient for them to use the is_visited property
+    
+    NOTE: I know it looks bad that I don't use the grid api's set_is_visited here, but 
+    the reason is because I know that I'm not going to need to draw the is_visited state. This is because 
+    we only call this function because we want our maze solvers to behave correctly. If we don't, then how 
+    is it going to solve a maze when it thinks it already visited everything.
+    """
     for x in range(self.num_cols):
       for y in range(self.num_rows):
         cell = self.get_cell(x, y)
@@ -284,3 +308,4 @@ class Grid:
       for x in range(self.num_cols):
         cell = self.get_cell(x, y)
         cell.reset()
+        self.renderer.mark_dirty(cell)
