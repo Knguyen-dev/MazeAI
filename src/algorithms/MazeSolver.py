@@ -172,7 +172,7 @@ class MazeSolver:
     the time being it has no idea where the goal is, and so it constantly expands. Since we're basically in a uniform weight graph, it's going to
     expand in all directions instead of towards some region.
 
-    NOTE: Remember that get_list_index returns a unique identifer for each cell in the grid. So instead of storing the cells in your cost maps, or external data structures, 
+    NOTE: Remember that get_list_index returns a unique identifier for each cell in the grid. So instead of storing the cells in your cost maps, or external data structures, 
     you can store the indices, which allows you to save a bit on memory and potentially performance.
     """
     start = grid.get_start_cell()

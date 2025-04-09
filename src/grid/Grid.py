@@ -46,7 +46,8 @@ class Grid:
 
         # As a result, all cells are registered as dirty, 
         # and so all cells will be rendered on first try
-        self.renderer.mark_dirty(self.matrix[y,x])
+        if self.renderer:
+          self.renderer.mark_dirty(self.matrix[y,x])
 
 
   # NOTE: I feel like if you're establishing that we should mess with 

@@ -25,7 +25,7 @@ class Renderer:
     # For drawing an individual cell
     self.highlight_is_visited_color = (30,144,255)
     self.highlight_is_in_path_color = (178,34,34)
-    self.is_visited_src_alpha = 64
+    self.is_visited_src_alpha = 100
     self.is_in_path_src_alpha = 200
     self.background_color = (0, 0, 0)
     self.wall_up_color = (183, 211, 122)
