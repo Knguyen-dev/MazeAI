@@ -144,7 +144,8 @@ class MazeSolver:
     goal = grid.get_goal_cell()
     grid.set_is_visited(start, True)
     queue = []
-    heapq.heappush(queue, (MazeSolver.manhattan_distance(start, goal), grid.get_list_index(start), start))  # Add unique identifier
+    insertion_index = 0
+    heapq.heappush(queue, (MazeSolver.manhattan_distance(start, goal), insertion_index, start))  # Add unique identifier
     while queue:
       distance, index, current_node = heapq.heappop(queue)
       if grid.is_goal_cell(current_node):
@@ -157,7 +158,8 @@ class MazeSolver:
           
           # add to queue with its heuristic value
           heuristic = MazeSolver.manhattan_distance(neighbor, goal)
-          heapq.heappush(queue, (heuristic, grid.get_list_index(neighbor), neighbor)) 
+          insertion_index += 1
+          heapq.heappush(queue, (heuristic, insertion_index, neighbor)) 
           if update_callback:
             update_callback()
   
@@ -176,35 +178,36 @@ class MazeSolver:
     you can store the indices, which allows you to save a bit on memory and potentially performance.
     """
     start = grid.get_start_cell()
-    start_index = grid.get_list_index(start)
-    costs = {start_index: 0}
+    insertion_index = 0
+    costs = {start: 0}
 
     open_set = []
-    heapq.heappush(open_set, (costs[start_index], start_index, start)) 
-    open_set_hash = {start_index}
+    heapq.heappush(open_set, (costs[start], insertion_index, start)) 
+    open_set_hash = {start}
 
     while open_set:
-      g_score, current_index, current_node = heapq.heappop(open_set)
-      open_set_hash.remove(current_index)
-      grid.set_is_visited(current_node, True)
+      g_score, current_index, current = heapq.heappop(open_set)
+      open_set_hash.remove(current)
+      grid.set_is_visited(current, True)
 
-      if grid.is_goal_cell(current_node):
-        MazeSolver.reconstruct_path(current_node, grid, update_callback)
+      if grid.is_goal_cell(current):
+        MazeSolver.reconstruct_path(current, grid, update_callback)
         return
 
-      for neighbor in grid.get_path_neighbors(current_node):
-        tentative_g_score = costs[current_index] + neighbor.weight
-        neighbor_index = grid.get_list_index(neighbor)
+      for neighbor in grid.get_path_neighbors(current):
+        tentative_g_score = costs[current] + neighbor.weight
+        
 
         # Case: If the neighbor hasn't been seen before, or the current path from start to neighbor is cheapest than the previous one found
         # In this case, update scores, and add neighbor to visited list if it's not there already.
-        if neighbor_index not in costs or tentative_g_score < costs[neighbor_index]:
-          neighbor.parent = current_node
-          costs[neighbor_index] = tentative_g_score
+        if neighbor not in costs or tentative_g_score < costs[neighbor]:
+          neighbor.parent = current
+          costs[neighbor] = tentative_g_score
           
-          if neighbor_index not in open_set_hash:
-            heapq.heappush(open_set, (costs[neighbor_index], neighbor_index, neighbor))
-            open_set_hash.add(neighbor_index)
+          if neighbor not in open_set_hash:
+            insertion_index += 1
+            heapq.heappush(open_set, (costs[neighbor], insertion_index, neighbor))
+            open_set_hash.add(neighbor)
       if update_callback:
         update_callback()
 
@@ -216,41 +219,44 @@ class MazeSolver:
       update_callback (_type_, optional): Callback to update visualization. Defaults to None.
     """
     start = grid.get_start_cell()
-    start_index = grid.get_list_index(start) 
     goal = grid.get_goal_cell()
-    g_scores = {start_index: 0}
-    f_scores = {start_index: MazeSolver.manhattan_distance(start, goal)}
+    g_scores = {start: 0}
+    f_scores = {start: MazeSolver.manhattan_distance(start, goal)}
     
-    # priority queue: (f_score, cell)
+    # priority queue: (f_score, insertion_index, cell)
+    # Two cells can have the same lowest f_score, and this is especially likely in an unweighted graph like a maze, so 
+    # the common way to actually solve this is to prioritize the node with the lowest insertion index. So expand the node that was added first.
     open_set = []
-    heapq.heappush(open_set, (f_scores[start_index], start_index, start)) 
+    current_insertion_index = 0
+    heapq.heappush(open_set, (f_scores[start], current_insertion_index, start)) 
     
     # track cells in the open set for O(1) lookups
-    open_set_hash = {start_index}
+    open_set_hash = {start}
     
     while open_set:
       # Pop node with smallest f_score from open_set, mark it as visited and remove it from open set (both the heap and map)
-      f_score, current_index, current_node = heapq.heappop(open_set)
-      open_set_hash.remove(current_index)
+      f_score, _, current_node = heapq.heappop(open_set)
+      open_set_hash.remove(current_node)
       grid.set_is_visited(current_node, True)
       
       if grid.is_goal_cell(current_node):
         MazeSolver.reconstruct_path(current_node, grid, update_callback)
         return
-      
+    
       for neighbor in grid.get_path_neighbors(current_node):
-        tentative_g_score = g_scores[current_index] + neighbor.weight
-        neighbor_index = grid.get_list_index(neighbor)
+        tentative_g_score = g_scores[current_node] + neighbor.weight
+        
 
         # Case: If the neighbor hasn't been seen before, or the current path from start to neighbor is cheapest than the previous one found
         # In this case, update scores, and add neighbor to visited list if it's not there already.
-        if neighbor_index not in g_scores or tentative_g_score < g_scores[neighbor_index]:
+        if neighbor not in g_scores or tentative_g_score < g_scores[neighbor]:
           neighbor.parent = current_node
-          g_scores[neighbor_index] = tentative_g_score
-          f_scores[neighbor_index] = tentative_g_score + MazeSolver.manhattan_distance(neighbor, goal)
-          if neighbor_index not in open_set_hash:
-            heapq.heappush(open_set, (f_scores[neighbor_index], neighbor_index, neighbor))
-            open_set_hash.add(neighbor_index)
+          g_scores[neighbor] = tentative_g_score
+          f_scores[neighbor] = tentative_g_score + MazeSolver.manhattan_distance(neighbor, goal)
+          if neighbor not in open_set_hash:
+            current_insertion_index += 1
+            heapq.heappush(open_set, (f_scores[neighbor], current_insertion_index, neighbor))
+            open_set_hash.add(neighbor)
 
 
       # After processing data, render things; note that the main thing that's changed is that 
