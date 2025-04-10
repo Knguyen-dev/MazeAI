@@ -23,8 +23,8 @@ https://github.com/Knguyen-dev/MazeAI.git
 <!-- Make sure you're in the project directory. Then Download dependencies -->
 uv sync
 
-<!-- Runs the program -->
-uv src/main.py
+<!-- Runs the program with specific configurations -->
+uv run src/App.py --n=50 --imperfection_rate=0 --start 0 0 --end 49 49 --render --animate_generation --animate_solving --cell_size=8 --generator=prim --solver=bfs
 ```
 
 
