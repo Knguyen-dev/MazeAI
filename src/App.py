@@ -12,11 +12,6 @@ from grid.Grid import Grid
 from grid.Renderer import Renderer
 
 # You can probably create a separate rendering class
-from utils.constants import (
-  BLACK,
-  CELL_SIZE,
-  CELL_WALL_WIDTH,
-)
 from utils.Profiler import profile
 
 
@@ -25,6 +20,7 @@ class App:
   # this maps command line arguments to algorithms, making it easy to select the appropriate
   # algorithm with a CLI.
   generator_map = {
+    "random_dfs": MazeGenerator.recursive_backtracker,
     "prim": MazeGenerator.randomized_prim,
     "kruskal": MazeGenerator.randomized_kruskal,
   }
@@ -37,47 +33,50 @@ class App:
   }
 
   def __init__(self, args):
-    """Wait don't delete main.py yet. Sometimes tis class doesn't work as the program just crashes"""
-    self.args = args
+    self.generator_fn = App.generator_map.get(args.generator, App.generator_map["prim"])
+    self.solving_fn = App.solver_map.get(args.solver, App.solver_map["bfs"])
+    self.imperfection_rate = args.imperfection_rate if args.imperfection_rate is not None else 0
+    args.seed = args.seed if args.seed is not None else 42
+    random.seed(args.seed)
 
-    # Initialize default arguments if needed
-    self.args.n = self.args.n if self.args.n is not None else 30
-    self.args.generator = self.args.generator if self.args.generator else "prim"
-    self.args.solver = self.args.solver if self.args.solver else "astar"
+    # Grid and solver
+    GRID_LENGTH = args.n if args.n is not None else 30
+    CELL_SIZE = args.cell_size if args.cell_size is not None else 20 
+    CELL_WALL_WIDTH = args.cell_wall_width if args.cell_wall_width is not None else 2
 
-    self.args.start = self.args.start if self.args.start is not None else (0, 0)
-    self.args.end = (
-      self.args.end if self.args.end is not None else (self.args.n - 1, self.args.n - 1)
-    )
-    self.args.render = self.args.render if self.args.render is not None else False
-    
-    self.args.log = self.args.log if self.args.log is not None else False
-    self.args.save = self.args.save if self.args.save is not None else False
-    self.args.seed = self.args.seed if self.args.seed is not None else 42
+    # If positions are none or out of range, then we'll replace them with default values
+    START_POS = None
+    END_POS = None
+    if (args.start is None) or (args.start[0] < 0 or args.start[0] > GRID_LENGTH - 1) or (args.start[1] < 0 or args.start[1] > GRID_LENGTH - 1):
+      START_POS = (0,0)
+    else:
+      START_POS = (args.start[0], args.start[1])
+    if (args.end is None) or (args.end[0] < 0 or args.end[0] > GRID_LENGTH - 1) or (args.end[1] < 0 or args.end[1] > GRID_LENGTH - 1):
+      END_POS = (GRID_LENGTH-1, GRID_LENGTH-1)
+    else:
+      END_POS = (args.end[0], args.end[1])
 
-    random.seed(self.args.seed)
-    start_pos = tuple(self.args.start) if self.args.start else (0, 0)
-    end_pos = (
-      tuple(self.args.end) if self.args.end else (self.args.n - 1, self.args.n - 1)
-    )
-    self.grid = Grid(self.args.n, self.args.n, start_pos, end_pos)
-
+    # Rendering, logging, saving
+    self.animate_generation = None # generation and animate solving have None as a default
+    self.animate_solving = None
+    self.logging_enabled = args.log 
+    self.save_image_output = args.save
     self.screen = None
     self.clock = None
     self.renderer = None
-
+    
+    
     if args.render:
-      width = self.args.n * CELL_SIZE  # should be the same for now
-      height = self.args.n * CELL_SIZE
+      width = GRID_LENGTH * CELL_SIZE  # should be the same for now
+      height = GRID_LENGTH * CELL_SIZE
       pygame.init()
       self.screen = pygame.display.set_mode((width, height))
       pygame.display.set_caption("MazeAI")
-      self.screen.fill(BLACK)
+      self.screen.fill((0,0,0))
       self.clock = pygame.time.Clock()
       self.renderer = Renderer(
         self.screen,
         self.clock,
-        self.grid,
         CELL_SIZE,
         CELL_WALL_WIDTH,
         # Don't highlight cells during maze generation; this is used for visualization of the maze generation process
@@ -86,67 +85,74 @@ class App:
         False,
       )
 
+      # Animation can only happen when the maze is rendered on the screen in the first place
+      self.animate_generation: bool = args.animate_generation 
+      self.animate_solving: bool = args.animate_solving 
+
+    self.grid = Grid(self.renderer, GRID_LENGTH, GRID_LENGTH, START_POS, END_POS)
+
   def generate_maze(self):
     """Generates the maze using the specified algorithm from the command line arguments."""
 
-    # Select maze generator function called on args
-    generator_fn = App.generator_map.get(self.args.generator)
-
-    # If both are true, then we'll define an animation function, else it'll be null
-    animate_fn = self.renderer.update_display if self.args.render and self.args.animate_generation else None
+    # Sets an animation function if we want to animate.
+    animate_fn = None
+    if self.animate_generation:
+      animate_fn = self.renderer.update_display  
 
     # If user wants to log the generator execution, we'll do it here; else just run the function
-    if self.args.log:
+    if self.logging_enabled:
       profile(
         self.grid.num_rows,
         self.grid.num_cols,
-        "maze_generator.csv",
-        generator_fn,
+        "generator.csv",
+        self.generator_fn,
         self.grid,
         animate_fn
       )
     else:
-      generator_fn(self.grid, animate_fn)
+      self.generator_fn(self.grid, animate_fn)
 
     # Maze has been generated, add imperfections if needed
-    MazeGenerator.add_imperfections(self.grid, self.args.imperfection_rate, animate_fn)
+    MazeGenerator.add_imperfections(self.grid, self.imperfection_rate, animate_fn)
 
   def solve_maze(self):
     """Solves the maze using the specified solver from the command line arguments."""
     
-    solver_fn = None
-    animate_fn = self.renderer.update_display if self.args.render and self.args.animate_solving else None
+    animate_fn = None
+    if self.animate_solving:
+      animate_fn = self.renderer.update_display
     
-    if self.args.solver in App.solver_map:
-      solver_fn = App.solver_map[self.args.solver] 
-    else:
-      print(f"Solver arg with name: {self.args.solver}, isn't valid! Skipping it.")
-      return
-
-    if self.args.log:
+    if self.logging_enabled:
       profile(
         self.grid.num_rows,
         self.grid.num_cols,
-        "execution_log.txt",
-        solver_fn,
+        "solver.csv",
+        self.solving_fn,
         self.grid,
         # Only animation the process of solving the maze if the user has specified they want animation; also need rendering on as well.
         update_callback=animate_fn
       )
     else:
-      solver_fn(
+      self.solving_fn(
         self.grid,
         update_callback=animate_fn
       )
       
   def run(self):
     """Function involved in the main program loop"""
+
+    # Draw the grid; all cells should be drawn at the time
+    # the grid is created. So we just need to request one animation frame to draw it
+    
+    
+    # Generate and solve maze
     self.generate_maze()
     if self.renderer:
       self.renderer.highlight_cells = True
+      self.renderer.update_display()
     self.solve_maze()
 
-    # If rendering is enabled, have a loop opened to render teh winodw
+    # If rendering is enabled, have a loop opened to render the window
     if self.renderer:
       running = True
       while running:
@@ -158,7 +164,7 @@ class App:
         self.clock.tick(60)
 
       # If the user wants to save the image
-      if self.args.save:
+      if self.save_image_output:
         output_dir = os.path.join(os.getcwd(), "output_images")
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -174,14 +180,13 @@ def parse_args():
   parser = argparse.ArgumentParser(description="MazeAI")
 
   parser.add_argument("--n", type=int)
+  parser.add_argument("--cell_size", type=int)
+  parser.add_argument("--cell_wall_width", type=int)
   parser.add_argument("--start", nargs=2, type=int)
   parser.add_argument("--end", nargs=2, type=int)
   parser.add_argument("--generator", choices=generator_choices)
-  parser.add_argument("--solver", choices=solver_choices)
-  
-  parser.add_argument("--imperfection_rate", type=float, default=0.5, choices=[i / 10 for i in range(11)])
-
-  # Whether the program is going to show the screen at all; this is needed to also have things animate
+  parser.add_argument("--solver", choices=solver_choices)  
+  parser.add_argument("--imperfection_rate", type=float, choices=[i / 10 for i in range(11)])
   parser.add_argument("--render", action="store_true")
   parser.add_argument("--animate_generation", action="store_true")
   parser.add_argument("--animate_solving", action="store_true")
@@ -195,7 +200,6 @@ def main():
   args = parse_args()
   app = App(args)
   app.run()
-
 
 if __name__ == "__main__":
   main()
