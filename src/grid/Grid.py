@@ -300,13 +300,20 @@ class Grid:
             walls.append((cell, neighbor, direction))
     return walls
 
-  def reset_solved_state(self):
-    """Resets the path for all cells in the grid.
-
-    This is useful for algorithms that need to re-calculate paths without needing to create a new instance of the grid.
-    """
+  def get_num_visited_cells(self) -> int:
+    count = 0
     for y in range(self.num_rows):
       for x in range(self.num_cols):
         cell = self.get_cell(x, y)
-        cell.reset()
-        self.renderer.mark_dirty(cell)
+        if cell.get_is_visited():
+          count += 1
+    return count
+  
+  def get_num_path_cells(self) -> int:
+    count = 0
+    for y in range(self.num_rows):
+      for x in range(self.num_cols):
+        cell = self.get_cell(x, y)
+        if cell.get_is_in_path():
+          count += 1
+    return count

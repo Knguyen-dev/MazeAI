@@ -64,7 +64,6 @@ class App:
     self.clock = None
     self.renderer = None
     
-    
     if args.render:
       width = GRID_LENGTH * CELL_SIZE  # should be the same for now
       height = GRID_LENGTH * CELL_SIZE
@@ -100,18 +99,11 @@ class App:
 
     # If user wants to log the generator execution, we'll do it here; else just run the function
     if self.logging_enabled:
-      # TODO: Profile the maze generation with the new profiler
-      self.profiler.
-      
-      profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "generator.csv",
+      self.profiler.profile_maze_generation(
         self.generator_fn,
         self.grid,
-        animate_fn
+        animate_fn        
       )
-      
     else:
       self.generator_fn(self.grid, animate_fn)
 
@@ -126,15 +118,10 @@ class App:
       animate_fn = self.renderer.update_display
     
     if self.logging_enabled:
-      # TODO: Integrate the new profiler in this method as well.
-      self.profiler.profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "solver.csv",
+      self.profiler.profile_maze_solver(
         self.solving_fn,
         self.grid,
-        # Only animation the process of solving the maze if the user has specified they want animation; also need rendering on as well.
-        update_callback=animate_fn
+        animate_fn
       )
     else:
       self.solving_fn(
@@ -144,11 +131,8 @@ class App:
       
   def run(self):
     """Function involved in the main program loop"""
-
     # Draw the grid; all cells should be drawn at the time
-    # the grid is created. So we just need to request one animation frame to draw it
-    
-    
+    # the grid is created. So we just need to request one animation frame to draw it    
     # Generate and solve maze
     self.generate_maze()
     if self.renderer:
@@ -156,18 +140,7 @@ class App:
       self.renderer.update_display()
     self.solve_maze()
 
-    # An interesting change; it seems like given the solving function, we're running it on various different sized mazes
-    if self.args.log:
-      solver_function = App.solver_map.get(self.args.solver)
-      if solver_function:
-        self.profiler.performance_analysis(
-          func=solver_function,
-          grid_sizes=[10, 20, 30, 60],
-          log_file="execution_log.csv",
-          output_plot_path="performance_analysis.png",
-          maze_generator=App.generator_map.get(self.args.generator),
-        )
-
+    
     # If rendering is enabled, have a loop opened to render teh winodw
     if self.renderer:
       running = True
