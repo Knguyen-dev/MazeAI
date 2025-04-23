@@ -180,14 +180,11 @@ class MazeSolver:
     start = grid.get_start_cell()
     insertion_index = 0
     costs = {start: 0}
-
     open_set = []
     heapq.heappush(open_set, (costs[start], insertion_index, start)) 
-    open_set_hash = {start}
 
     while open_set:
       g_score, current_index, current = heapq.heappop(open_set)
-      open_set_hash.remove(current)
       grid.set_is_visited(current, True)
 
       if grid.is_goal_cell(current):
@@ -203,11 +200,10 @@ class MazeSolver:
         if neighbor not in costs or tentative_g_score < costs[neighbor]:
           neighbor.parent = current
           costs[neighbor] = tentative_g_score
-          
-          if neighbor not in open_set_hash:
-            insertion_index += 1
-            heapq.heappush(open_set, (costs[neighbor], insertion_index, neighbor))
-            open_set_hash.add(neighbor)
+          insertion_index += 1
+          heapq.heappush(open_set, (costs[neighbor], insertion_index, neighbor))
+
+
       if update_callback:
         update_callback()
 
@@ -230,13 +226,9 @@ class MazeSolver:
     current_insertion_index = 0
     heapq.heappush(open_set, (f_scores[start], current_insertion_index, start)) 
     
-    # track cells in the open set for O(1) lookups
-    open_set_hash = {start}
-    
     while open_set:
       # Pop node with smallest f_score from open_set, mark it as visited and remove it from open set (both the heap and map)
       f_score, _, current_node = heapq.heappop(open_set)
-      open_set_hash.remove(current_node)
       grid.set_is_visited(current_node, True)
       
       if grid.is_goal_cell(current_node):
@@ -249,16 +241,14 @@ class MazeSolver:
 
         # Case: If the neighbor hasn't been seen before, or the current path from start to neighbor is cheapest than the previous one found
         # In this case, update scores, and add neighbor to visited list if it's not there already.
+        # So if you're already visited AND you don't have a better path, we don't care.
         if neighbor not in g_scores or tentative_g_score < g_scores[neighbor]:
           neighbor.parent = current_node
           g_scores[neighbor] = tentative_g_score
           f_scores[neighbor] = tentative_g_score + MazeSolver.manhattan_distance(neighbor, goal)
-          if neighbor not in open_set_hash:
-            current_insertion_index += 1
-            heapq.heappush(open_set, (f_scores[neighbor], current_insertion_index, neighbor))
-            open_set_hash.add(neighbor)
-
-
+          current_insertion_index += 1
+          heapq.heappush(open_set, (f_scores[neighbor], current_insertion_index, neighbor))
+            
       # After processing data, render things; note that the main thing that's changed is that 
       # the current node is now visited. You could place this callback condition earlier in the while loop
       if update_callback:

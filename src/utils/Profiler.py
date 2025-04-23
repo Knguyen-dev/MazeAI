@@ -14,7 +14,7 @@ class Profiler:
         self.benchmark_log_file_header = ["Timestamp", "Function", "Runs", "Avg Execution Time (s)", "Avg Memory (KB)", "Avg Peak Memory (KB)"]
         self.solver_log_file = "solver.csv"
         self.generator_log_file = "generator.csv"
-        self.plots_dir = "/plots"
+        self.plots_dir = os.path.join("plots")
     
     def _log_entry(self, log_file, entry, header):
         """Creates an entry in the log file; adds a header if one doesn't already exist"""
@@ -100,7 +100,7 @@ class Profiler:
         from grid.Grid import Grid
         random.seed()
 
-        grid_sizes = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200, 250, 300]
+        grid_sizes = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300]
         # Use randomized kruskal as the default maze generator
         maze_generator_fn = MazeGenerator.randomized_kruskal
         solver_arr = [
@@ -124,21 +124,6 @@ class Profiler:
       os.makedirs(self.plots_dir, exist_ok=True)
 
       solver_df = pd.read_csv(self.solver_log_file)
-      generator_df = pd.read_csv(self.generator_log_file)
-
-      # --- Maze Generator Performance ---
-      plt.figure(figsize=(12, 6))
-      generator_grouped = generator_df.groupby("Rows").mean(numeric_only=True)
-      
-      plt.plot(generator_grouped.index, generator_grouped["Execution Time (s)"], marker='o', label="Execution Time (s)")
-      plt.plot(generator_grouped.index, generator_grouped["Peak Memory Usage (KB)"], marker='x', label="Peak Memory Usage (KB)")
-      plt.title("Maze Generator Performance")
-      plt.xlabel("Grid Size (N x N)")
-      plt.ylabel("Performance Metrics")
-      plt.legend()
-      plt.grid(True)
-      plt.tight_layout()
-      plt.savefig(os.path.join(self.plots_dir, "maze_generator_performance.png")) 
     
       # --- Maze Solver Execution Time ---
       plt.figure(figsize=(12, 6))
@@ -168,16 +153,64 @@ class Profiler:
       plt.tight_layout()
       plt.savefig(os.path.join(self.plots_dir, "maze_solver_peak_memory_usage.png"))
     
-      # --- Maze Solver: Number of Visited Cells ---
       plt.figure(figsize=(12, 6))
+
+
+      
+      '''
+      # Graph: Percentage of Grid Visited
+      1. Get all rows for a given solver; make a copy to not mess up the original
+      2. Calculate the total number of cells; we're using square grids to be our maze.
+      3. Create a row that stores the percentage of visited cells against number of cells in grid.
+      4. Group your rows in groups that work on the same amounts of rows. Then calculate the arithmetic mean for 
+      all of your numerical columsn?I guess do a plot with the average visit percent.
+      '''
       for solver_name in solver_df["Solver"].unique():
           solver_data = solver_df[solver_df["Solver"] == solver_name]
-          solver_grouped = solver_data.groupby("Rows").mean(numeric_only=True)
-          plt.plot(solver_grouped.index, solver_grouped["num_visited_cells"], marker='s', label=solver_name)
-      plt.title("Number of Cells Visited by Each Solver")
+          solver_data = solver_data.copy()
+          solver_data["grid_total_cells"] = solver_data["Rows"] ** 2
+          solver_data["visit_percent"] = (solver_data["num_visited_cells"] / solver_data["grid_total_cells"]) * 100
+          grouped = solver_data.groupby("Rows").mean(numeric_only=True)
+          plt.plot(grouped.index, grouped["visit_percent"], marker='o', label=solver_name)
+
+          # Annotate last point
+          x_last = grouped.index[-1]
+          y_last = grouped["visit_percent"].iloc[-1]
+          plt.annotate(f"{solver_name}\n{y_last:.1f}%", (x_last, y_last), textcoords="offset points", xytext=(5,5), ha='left')
+
+      plt.title("Percentage of Grid Visited by Each Solver")
       plt.xlabel("Grid Size (N x N)")
-      plt.ylabel("Visited Cells")
+      plt.ylabel("Visited Cells (%)")
       plt.legend()
       plt.grid(True)
       plt.tight_layout()
-      plt.savefig(os.path.join(self.plots_dir, "maze_solver_visited_cells.png"))  # Save plot
+      plt.savefig(os.path.join(self.plots_dir, "maze_solver_visit_percent.png"))
+
+      plt.figure(figsize=(12, 6))
+
+      
+      '''
+      # Graph: Exploration Efficency 
+      '''
+      for solver_name in solver_df["Solver"].unique():
+          solver_data = solver_df[solver_df["Solver"] == solver_name]
+          solver_data = solver_data.copy()
+          solver_data["exploration_efficiency"] = solver_data["num_visited_cells"] / solver_data["num_in_path"]
+          grouped = solver_data.groupby("Rows").mean(numeric_only=True)
+          plt.plot(grouped.index, grouped["exploration_efficiency"], marker='^', label=solver_name)
+
+          # Annotate last point
+          x_last = grouped.index[-1]
+          y_last = grouped["exploration_efficiency"].iloc[-1]
+          plt.annotate(f"{solver_name}\n{y_last:.2f}x", (x_last, y_last), textcoords="offset points", xytext=(5,5), ha='left')
+
+          
+
+      plt.title("Exploration Efficiency: Visited Cells / Path Length")
+      plt.xlabel("Grid Size (N x N)")
+      plt.ylabel("Visited : Goal Path Ratio")
+      plt.legend()
+      plt.grid(True)
+      plt.tight_layout()
+      plt.savefig(os.path.join(self.plots_dir, "maze_solver_efficiency_ratio.png"))
+
