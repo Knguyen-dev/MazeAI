@@ -10,9 +10,7 @@ from algorithms.MazeGenerator import MazeGenerator
 from algorithms.MazeSolver import MazeSolver
 from grid.Grid import Grid
 from grid.Renderer import Renderer
-
-# You can probably create a separate rendering class
-from utils.Profiler import profile
+from utils.Profiler import Profiler
 
 
 class App:
@@ -33,6 +31,7 @@ class App:
   }
 
   def __init__(self, args):
+    self.profiler = Profiler()
     self.generator_fn = App.generator_map.get(args.generator, App.generator_map["prim"])
     self.solving_fn = App.solver_map.get(args.solver, App.solver_map["bfs"])
     self.imperfection_rate = args.imperfection_rate if args.imperfection_rate is not None else 0
@@ -64,7 +63,6 @@ class App:
     self.screen = None
     self.clock = None
     self.renderer = None
-    
     
     if args.render:
       width = GRID_LENGTH * CELL_SIZE  # should be the same for now
@@ -101,13 +99,10 @@ class App:
 
     # If user wants to log the generator execution, we'll do it here; else just run the function
     if self.logging_enabled:
-      profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "generator.csv",
+      self.profiler.profile_maze_generation(
         self.generator_fn,
         self.grid,
-        animate_fn
+        animate_fn        
       )
     else:
       self.generator_fn(self.grid, animate_fn)
@@ -123,14 +118,10 @@ class App:
       animate_fn = self.renderer.update_display
     
     if self.logging_enabled:
-      profile(
-        self.grid.num_rows,
-        self.grid.num_cols,
-        "solver.csv",
+      self.profiler.profile_maze_solver(
         self.solving_fn,
         self.grid,
-        # Only animation the process of solving the maze if the user has specified they want animation; also need rendering on as well.
-        update_callback=animate_fn
+        animate_fn
       )
     else:
       self.solving_fn(
@@ -140,11 +131,8 @@ class App:
       
   def run(self):
     """Function involved in the main program loop"""
-
     # Draw the grid; all cells should be drawn at the time
-    # the grid is created. So we just need to request one animation frame to draw it
-    
-    
+    # the grid is created. So we just need to request one animation frame to draw it    
     # Generate and solve maze
     self.generate_maze()
     if self.renderer:
@@ -152,7 +140,8 @@ class App:
       self.renderer.update_display()
     self.solve_maze()
 
-    # If rendering is enabled, have a loop opened to render the window
+    
+    # If rendering is enabled, have a loop opened to render teh winodw
     if self.renderer:
       running = True
       while running:
@@ -185,8 +174,11 @@ def parse_args():
   parser.add_argument("--start", nargs=2, type=int)
   parser.add_argument("--end", nargs=2, type=int)
   parser.add_argument("--generator", choices=generator_choices)
-  parser.add_argument("--solver", choices=solver_choices)  
-  parser.add_argument("--imperfection_rate", type=float, choices=[i / 10 for i in range(11)])
+  parser.add_argument("--solver", choices=solver_choices)
+  
+  parser.add_argument("--imperfection_rate", type=float, default=0.0, choices=[i / 10 for i in range(11)])
+
+  # Whether the program is going to show the screen at all; this is needed to also have things animate
   parser.add_argument("--render", action="store_true")
   parser.add_argument("--animate_generation", action="store_true")
   parser.add_argument("--animate_solving", action="store_true")
@@ -203,3 +195,4 @@ def main():
 
 if __name__ == "__main__":
   main()
+
