@@ -22,6 +22,16 @@
 - Profiling support to time generation and solving phases
 
 ---
+#### Main Application Components
+The application has four main components:
+- `App.py`: The App class acts as the entrypoint in the application, as it lets the user input in command line arguments, and it orchestrates the rest of the components to work together. As a result, the maze will be able to generate the maze, solve it, and render the entire process at the same time.
+- `Renderer.py`: The renderer is solely responsible for all rendering related actions, allowing us to see the maze generation and solving on the screen.
+- `MazeGenerator.py`: The class that's responsible for data manipulation and using an algorithm to randomly generate the maze.
+- `MazeSolver.py`: The class responsible for using a search algorithm to solve the maze.
+- `Grid.py` and `Cell`: The internal representation of the maze, as the maze is just a grid. Then each cell in that grid represents a position in the maze. 
+
+
+---
 
 ### Setup Instructions
 
