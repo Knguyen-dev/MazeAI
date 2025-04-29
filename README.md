@@ -1,57 +1,90 @@
-# MazeAI
-MazeAI is a Python-based application for generating and solving mazes. It includes various maze generation algorithms (e.g., Recursive Backtracker, Randomized Prim's) and search algorithms (e.g., A*, BFS, DFS). The project is designed to be modular, scalable, and easy to replicate in other languages.
+## 🧠 MazeAI
 
+**MazeAI** is a Python application that generates and solves mazes with visualization. It supports different generation and search algorithms and is designed for modularity, extensibility, and educational purposes. Users can use command line arguments to select things like maze size and algorithm to be used, and watch an animation of the maze being solved in real time.
 
-### Setting up the project
+---
 
-#### Install UV Package Manager
-Go [here](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer) to get the instructions. I'll summarize it here: 
+### 🚀 Features
 
-```
-<!-- Installs UV globally from the internet -->
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+- **Maze Generation Algorithms**:
+  - `random_dfs` (Recursive Backtracker)
+  - `prim` (Randomized Prim's)
+  - `kruskal` (Randomized Kruskal's)
 
-<!-- Verifies installation -->
-uv
-```
+- **Maze Solving Algorithms**:
+  - `bfs` (Breadth-First Search)
+  - `dfs` (Depth-First Search)
+  - `dijkstra` (Dijkstra's Algorithm)
+  - `astar` (A* Search)
+  - `greedy` (Greedy Best-First Search)
 
-#### Clone and setup GitHub Repo
-```
-<!-- Clone the project -->
-https://github.com/Knguyen-dev/MazeAI.git
+- Visualization with real-time animation
+- Profiling support to time generation and solving phases
 
-<!-- Make sure you're in the project directory. Then Download dependencies -->
+---
+
+### 🛠️ Setup Instructions
+
+#### 1. Install the UV Package Manager
+
+We use **uv** as our Python package and virtual environment manager.
+
+Follow the official instructions to install it on your OS [here](https://docs.astral.sh/uv/getting-started/installation/)
+
+#### 2. Clone and Run the Project
+
+```bash
+# Clone the project
+git clone https://github.com/Knguyen-dev/MazeAI.git
+cd MazeAI
+
+# Install all dependencies
 uv sync
 
-<!-- Runs the program with specific configurations -->
+# run the program with default arguments
+uv run src/App.py
+
+# Run with custom configuration
 uv run src/App.py --n=50 --imperfection_rate=0 --start 0 0 --end 49 49 --render --animate_generation --animate_solving --cell_size=8 --generator=prim --solver=bfs
 ```
 
+---
 
-### Project Scripts 
-```Bash
-# Run the program
-uv run src/App.py
+### 📌 Command Line Arguments
 
-# Managing dependencies
-uv add <package-name>
-uv add <package-name> --dev
-uv remove <package-name>
+| Argument                  | Type     | Description |
+|---------------------------|----------|-------------|
+| `--n`                     | `int`    | Size of the grid (e.g., `--n=30` creates a 30x30 maze). |
+| `--cell_size`             | `int`    | Pixel size of each cell in the rendered grid. |
+| `--cell_wall_width`       | `int`    | Width of walls between cells (in pixels). |
+| `--start x y`             | `int` x2 | Starting cell coordinates (e.g., `--start 0 0`). |
+| `--end x y`               | `int` x2 | Ending cell coordinates (e.g., `--end 29 29`). |
+| `--generator`             | `str`    | Maze generation algorithm (`random_dfs`, `prim`, `kruskal`). |
+| `--solver`                | `str`    | Maze solving algorithm (`bfs`, `dfs`, `astar`, `dijkstra`, `greedy`). |
+| `--imperfection_rate`     | `float`  | Value from 0.0 to 1.0 (in steps of 0.1) to randomly remove walls and introduce loops. |
+| `--render`                | `flag`   | Enable graphical rendering with Pygame. |
+| `--animate_generation`    | `flag`   | Animate the maze generation process (requires `--render`). |
+| `--animate_solving`       | `flag`   | Animate the maze solving process (requires `--render`). |
+| `--log`                   | `flag`   | Enable profiling (logs time to generate and solve maze). |
+| `--save`                  | `flag`   | Save the final rendered maze as a `.png` image. |
+| `--seed`                  | `int`    | Seed for the random number generator (ensures reproducibility). |
 
-# Formatting and linting
-uv run ruff format
-uv run ruff check
+---
 
-# Running tests
-uv run pytest <test_file_name>
-uv run pytest 
-uv build
+### 🔧 Example Commands
+
+```bash
+# Generate and solve a 30x30 maze using DFS with animation and logging
+uv run src/App.py --n=30 --generator=random_dfs --solver=dfs --render --animate_generation --animate_solving --log
+
+# Run with no rendering or animation
+uv run src/App.py --n=20 --generator=kruskal --solver=astar
 ```
 
-### General Procedures
-- Use snake_case for variable and function names. Then PascalCase for class names. This isn't critical, but it's just nice to do.
-- If you're adding a new feature, create a feature branch. Before pushing the branch, pull from main to ensure you have the latest changes.
-- To avoid doing work that others are already working on, look at the issues tab and find an issue that no one is working on. Then assign yourself to it. 
+---
 
-## Credits
-- [MazeAI GitHub Repo](https://github.com/Knguyen-dev/MazeAI.git)
+### 🙌 Credits
+
+- [MazeAI GitHub Repository](https://github.com/Knguyen-dev/MazeAI)
+- Developed by Kevin Nguyen, Lucas Germinari Carreira, and Jesus Rendon Quintanilla
+- TAs and mentors: Sanjana Agrawal, Owen Kleinmaier
