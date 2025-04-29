@@ -1,10 +1,10 @@
-## 🧠 MazeAI
+## MazeAI
 
 **MazeAI** is a Python application that generates and solves mazes with visualization. It supports different generation and search algorithms and is designed for modularity, extensibility, and educational purposes. Users can use command line arguments to select things like maze size and algorithm to be used, and watch an animation of the maze being solved in real time.
 
 ---
 
-### 🚀 Features
+### Features
 
 - **Maze Generation Algorithms**:
   - `random_dfs` (Recursive Backtracker)
@@ -23,7 +23,7 @@
 
 ---
 
-### 🛠️ Setup Instructions
+### Setup Instructions
 
 #### 1. Install the UV Package Manager
 
@@ -50,7 +50,7 @@ uv run src/App.py --n=50 --imperfection_rate=0 --start 0 0 --end 49 49 --render 
 
 ---
 
-### 📌 Command Line Arguments
+### Command Line Arguments
 
 | Argument                  | Type     | Description |
 |---------------------------|----------|-------------|
@@ -71,7 +71,7 @@ uv run src/App.py --n=50 --imperfection_rate=0 --start 0 0 --end 49 49 --render 
 
 ---
 
-### 🔧 Example Commands
+### Example Commands
 
 ```bash
 # Generate and solve a 30x30 maze using DFS with animation and logging
@@ -83,7 +83,7 @@ uv run src/App.py --n=20 --generator=kruskal --solver=astar
 
 ---
 
-### 🙌 Credits
+### Credits
 
 - [MazeAI GitHub Repository](https://github.com/Knguyen-dev/MazeAI)
 - Developed by Kevin Nguyen, Lucas Germinari Carreira, and Jesus Rendon Quintanilla
